@@ -282,7 +282,7 @@ final class TermuxInstaller {
     public static boolean checkIfMinOrMaxSdkVersionIsIncompatible(Activity activity,
                                                                   Integer minSdk, String minRelease,
                                                                   Integer maxSdk, String maxRelease) {
-        if (minSdk != null && Build.VERSION.SDK_INT < minSdk) {
+        if (minSdk != null && minSdk > 0 && Build.VERSION.SDK_INT < minSdk) {
             String bootstrapErrorMessage = activity.getString(R.string.bootstrap_error_apk_bootstrap_variant_min_sdk_incompatible,
                     MarkdownUtils.getMarkdownCodeForString(TermuxBootstrap.TERMUX_APP_PACKAGE_VARIANT.getName(), false),
                     MarkdownUtils.getMarkdownCodeForString(Build.VERSION.RELEASE, false),
@@ -297,7 +297,7 @@ final class TermuxInstaller {
             return false;
         }
 
-        if (maxSdk != null && Build.VERSION.SDK_INT > maxSdk) {
+        if (maxSdk != null && maxSdk > 0 && Build.VERSION.SDK_INT > maxSdk) {
             String bootstrapErrorMessage = activity.getString(R.string.bootstrap_error_apk_bootstrap_variant_max_sdk_incompatible,
                     MarkdownUtils.getMarkdownCodeForString(TermuxBootstrap.TERMUX_APP_PACKAGE_VARIANT.getName(), false),
                     MarkdownUtils.getMarkdownCodeForString(Build.VERSION.RELEASE, false),
