@@ -30,10 +30,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build APKs
+      - name: Build and Sign APKs
         shell: bash {0}
         env:
           PACKAGE_VARIANT: ${{ matrix.package_variant }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
         run: |
           exit_on_error() { echo "$1"; exit 1; }
 
@@ -60,7 +63,7 @@ jobs:
           echo "APK_VERSION_TAG=$APK_VERSION_TAG" >> $GITHUB_ENV
           echo "APK_BASENAME_PREFIX=$APK_BASENAME_PREFIX" >> $GITHUB_ENV
 
-          echo "Building APKs for 'APK_VERSION_TAG' build (arm64-v8a)"
+          echo "Building APKs for '$APK_VERSION_TAG' build (arm64-v8a)"
           export TERMUX_APP_VERSION_NAME="${RELEASE_VERSION_NAME/v/}" # Used by app/build.gradle
           export TERMUX_APK_VERSION_TAG="$APK_VERSION_TAG" # Used by app/build.gradle
           export TERMUX_PACKAGE_VARIANT="${{ env.PACKAGE_VARIANT }}" # Used by app/build.gradle
@@ -76,6 +79,24 @@ jobs:
               exit_on_error "Failed to find built APK at '$APK_DIR_PATH/${APK_BASENAME_PREFIX}_$abi.apk'. Files found: "$'\n'"$files_found"
             fi
           done
+
+          echo "Signing APK with custom private keystore from GitHub Secrets"
+          echo "$KEYSTORE_BASE64" | base64 -d > /tmp/release.p12
+          APKSIGNER=$(find $ANDROID_SDK_ROOT/build-tools -name apksigner | sort -V | tail -n 1)
+          echo "Found apksigner at: $APKSIGNER"
+          $APKSIGNER sign --ks /tmp/release.p12 \
+            --ks-pass "pass:$KEYSTORE_PASSWORD" \
+            --ks-key-alias "$KEYSTORE_ALIAS" \
+            --key-pass "pass:$KEYSTORE_PASSWORD" \
+            --v1-signing-enabled true \
+            --v2-signing-enabled true \
+            --v3-signing-enabled true \
+            --v4-signing-enabled false \
+            "$APK_DIR_PATH/${APK_BASENAME_PREFIX}_arm64-v8a.apk"
+          rm -f /tmp/release.p12
+
+          echo "Verifying signature with apksigner"
+          $APKSIGNER verify --verbose "$APK_DIR_PATH/${APK_BASENAME_PREFIX}_arm64-v8a.apk"
 
           echo "Generating sha25sums file"
           if ! (cd "$APK_DIR_PATH"; sha256sum \

@@ -5,6 +5,8 @@
 # Built application files
 build/
 release/
+build-artifacts/
+build-artifacts*/
 *.apk
 *.so
 .externalNativeBuild
@@ -19,6 +21,8 @@ local.properties
 
 # Signing files
 .signing/
+*.p12
+*.keystore
 
 # Intellij
 .idea/
