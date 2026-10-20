@@ -23,6 +23,10 @@ local.properties
 .signing/
 *.p12
 *.keystore
+*.jks
+*.key
+*password*.txt
+*.env
 
 # Intellij
 .idea/
