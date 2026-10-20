@@ -7,6 +7,7 @@ import android.content.res.Configuration;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -182,16 +183,17 @@ public class ViewUtils {
      *                     and can be smaller than physical display size in multi-window mode.
      * @return Returns the display size as {@link Point}.
      */
-    public static Point getDisplaySize( @NonNull Context context, boolean activitySize) {
-        // android.view.WindowManager.getDefaultDisplay() and Display.getSize() are deprecated in
-        // API 30 and give wrong values in API 30 for activitySize=false in multi-window
-        androidx.window.WindowManager windowManager = new androidx.window.WindowManager(context);
-        androidx.window.WindowMetrics windowMetrics;
-        if (activitySize)
-            windowMetrics = windowManager.getCurrentWindowMetrics();
-        else
-            windowMetrics = windowManager.getMaximumWindowMetrics();
-        return new Point(windowMetrics.getBounds().width(), windowMetrics.getBounds().height());
+    public static Point getDisplaySize(@NonNull Context context, boolean activitySize) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            android.view.WindowManager wm = context.getSystemService(android.view.WindowManager.class);
+            if (wm != null) {
+                android.view.WindowMetrics metrics = activitySize ? wm.getCurrentWindowMetrics() : wm.getMaximumWindowMetrics();
+                Rect bounds = metrics.getBounds();
+                return new Point(bounds.width(), bounds.height());
+            }
+        }
+        DisplayMetrics dm = context.getResources().getDisplayMetrics();
+        return new Point(dm.widthPixels, dm.heightPixels);
     }
 
     /** Convert {@link Rect} to {@link String}. */
