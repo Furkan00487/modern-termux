@@ -53,14 +53,16 @@ android {
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
 
+        applicationId "com.modtux"
+
         buildConfigField "String", "TERMUX_PACKAGE_VARIANT", "\"" + project.ext.packageVariant + "\"" // Used by TermuxApplication class
         buildConfigField "int", "TERMUX_APP__BOOTSTRAP_MIN_SDK", "" + project.ext.bootstrapMinSdk
         buildConfigField "String", "TERMUX_APP__BOOTSTRAP_MIN_RELEASE", "\"" + project.ext.bootstrapMinRelease + "\""
         buildConfigField "int", "TERMUX_APP__BOOTSTRAP_MAX_SDK", "" + project.ext.bootstrapMaxSdk
         buildConfigField "String", "TERMUX_APP__BOOTSTRAP_MAX_RELEASE", "\"" + project.ext.bootstrapMaxRelease + "\""
 
-        manifestPlaceholders.TERMUX_PACKAGE_NAME = "com.termux"
-        manifestPlaceholders.TERMUX_APP_NAME = "Termux"
+        manifestPlaceholders.TERMUX_PACKAGE_NAME = "com.modtux"
+        manifestPlaceholders.TERMUX_APP_NAME = "Modern Termux"
         manifestPlaceholders.TERMUX_API_APP_NAME = "Termux:API"
         manifestPlaceholders.TERMUX_BOOT_APP_NAME = "Termux:Boot"
         manifestPlaceholders.TERMUX_FLOAT_APP_NAME = "Termux:Float"
@@ -172,11 +174,71 @@ def validateVersionName(String versionName) {
         throw new GradleException("The versionName '"  + versionName + "' is not a valid version as per semantic version '2.0.0' spec in the format 'major.minor.patch(-prerelease)(+buildmetadata)'. https://semver.org/spec/v2.0.0.html.")
 }
 
-def downloadBootstrap(String arch, String expectedChecksum, String version) {
-    def digest = java.security.MessageDigest.getInstance("SHA-256")
+def patchBootstrapZip(File zipFile, String fromPkg, String toPkg) {
+    byte[] fromBytes = fromPkg.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+    byte[] toBytes = toPkg.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+    if (fromBytes.length != toBytes.length) {
+        throw new GradleException("Package name replacement lengths must match exactly! " + fromBytes.length + " != " + toBytes.length)
+    }
+    File tempFile = new File(zipFile.parentFile, zipFile.name + ".patched.tmp")
+    java.util.zip.ZipFile zf = new java.util.zip.ZipFile(zipFile)
+    java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile)))
 
+    int replacedCount = 0
+    Enumeration<? extends java.util.zip.ZipEntry> entries = zf.entries()
+    byte[] buf = new byte[8192]
+    while (entries.hasMoreElements()) {
+        java.util.zip.ZipEntry entry = entries.nextElement()
+        InputStream is = zf.getInputStream(entry)
+        ByteArrayOutputStream baos = new ByteArrayOutputStream()
+        int n
+        while ((n = is.read(buf)) != -1) {
+            baos.write(buf, 0, n)
+        }
+        is.close()
+        byte[] data = baos.toByteArray()
+
+        if (!entry.isDirectory()) {
+            for (int i = 0; i <= data.length - fromBytes.length; i++) {
+                boolean match = true
+                for (int j = 0; j < fromBytes.length; j++) {
+                    if (data[i + j] != fromBytes[j]) {
+                        match = false
+                        break
+                    }
+                }
+                if (match) {
+                    System.arraycopy(toBytes, 0, data, i, toBytes.length)
+                    replacedCount++
+                    i += fromBytes.length - 1
+                }
+            }
+        }
+
+        java.util.zip.ZipEntry newEntry = new java.util.zip.ZipEntry(entry.name)
+        newEntry.time = entry.time
+        zos.putNextEntry(newEntry)
+        zos.write(data)
+        zos.closeEntry()
+    }
+    zos.close()
+    zf.close()
+    zipFile.delete()
+    if (!tempFile.renameTo(zipFile)) {
+        throw new GradleException("Failed to rename patched bootstrap zip file")
+    }
+    logger.quiet("Patched bootstrap zip (" + zipFile.name + "): replaced " + replacedCount + " occurrences of '" + fromPkg + "' with '" + toPkg + "'")
+}
+
+def downloadBootstrap(String arch, String expectedChecksum, String version) {
     def localUrl = "src/main/cpp/bootstrap-" + arch + ".zip"
     def file = new File(projectDir, localUrl)
+    def patchedMarker = new File(projectDir, "src/main/cpp/bootstrap-" + arch + ".patched")
+    if (file.exists() && patchedMarker.exists()) {
+        return
+    }
+
+    def digest = java.security.MessageDigest.getInstance("SHA-256")
     if (file.exists()) {
         def buffer = new byte[8192]
         def input = new FileInputStream(file)
@@ -185,13 +247,17 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
             if (readBytes < 0) break
             digest.update(buffer, 0, readBytes)
         }
+        input.close()
         def checksum = new BigInteger(1, digest.digest()).toString(16)
         while (checksum.length() < 64) { checksum = "0" + checksum }
         if (checksum == expectedChecksum) {
+            patchBootstrapZip(file, "com.termux", "com.modtux")
+            patchedMarker.text = "patched"
             return
         } else {
             logger.quiet("Deleting old local file with wrong hash: " + localUrl + ": expected: " + expectedChecksum + ", actual: " + checksum)
             file.delete()
+            patchedMarker.delete()
         }
     }
 
@@ -203,6 +269,7 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
 
     def connection = new URL(remoteUrl).openConnection()
     connection.setInstanceFollowRedirects(true)
+    digest.reset()
     def digestStream = new java.security.DigestInputStream(connection.inputStream, digest)
     out << digestStream
     out.close()
@@ -213,12 +280,15 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
         file.delete()
         throw new GradleException("Wrong checksum for " + remoteUrl + ": expected: " + expectedChecksum + ", actual: " + checksum)
     }
+
+    patchBootstrapZip(file, "com.termux", "com.modtux")
+    patchedMarker.text = "patched"
 }
 
 clean {
     doLast {
         def tree = fileTree(new File(projectDir, 'src/main/cpp'))
-        tree.include 'bootstrap-*.zip'
+        tree.include 'bootstrap-*'
         tree.each { it.delete() }
     }
 }
