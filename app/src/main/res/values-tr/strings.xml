@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE resources [
+    <!ENTITY TERMUX_PACKAGE_NAME "com.modtux">
+    <!ENTITY TERMUX_APP_NAME "Modern Termux">
+    <!ENTITY TERMUX_API_APP_NAME "Termux:API">
+    <!ENTITY TERMUX_BOOT_APP_NAME "Termux:Boot">
+    <!ENTITY TERMUX_FLOAT_APP_NAME "Termux:Float">
+    <!ENTITY TERMUX_STYLING_APP_NAME "Termux:Styling">
+    <!ENTITY TERMUX_TASKER_APP_NAME "Termux:Tasker">
+    <!ENTITY TERMUX_WIDGET_APP_NAME "Termux:Widget">
+    ]>
+
+<resources>
+
+    <string name="application_name">&TERMUX_APP_NAME;</string>
+    <string name="shared_user_label">&TERMUX_APP_NAME; kullanıcısı</string>
+
+
+
+    <!-- Termux RUN_COMMAND permission -->
+    <string name="permission_run_command_label">&TERMUX_APP_NAME; ortamında komut çalıştırma</string>
+    <string name="permission_run_command_description">&TERMUX_APP_NAME; ortamında rastgele komutlar çalıştırma ve dosyalara erişme</string>
+
+
+
+    <!-- Termux Bootstrap Packages Installation -->
+    <string name="bootstrap_installer_body">Başlangıç paketleri yükleniyor…</string>
+    <string name="bootstrap_error_title">&TERMUX_APP_NAME; Başlangıç Hatası</string>
+    <string name="bootstrap_error_body">&TERMUX_APP_NAME; başlangıç paketlerini yükleyemedi.</string>
+    <string name="bootstrap_error_abort">Durdur</string>
+    <string name="bootstrap_error_try_again">Yeniden dene</string>
+    <string name="bootstrap_error_apk_bootstrap_variant_min_sdk_incompatible">Mevcut yüklü &TERMUX_APP_NAME; uygulamasının %1$s bootstrap varyantı, cihazın Android %2$s (sdk `%3$d`) sürümü ile uyumlu değildir; minimum Android %4$s (sdk `%5$d`) gerektirir.
+        \n\nLütfen &TERMUX_APP_NAME; uygulamasını kaldırıp doğru APK varyantını yükleyin.</string>
+    <string name="bootstrap_error_apk_bootstrap_variant_max_sdk_incompatible">Mevcut yüklü &TERMUX_APP_NAME; uygulamasının %1$s bootstrap varyantı, cihazın Android %2$s (sdk `%3$d`) sürümü ile uyumlu değildir; maksimum Android %4$s (sdk `%5$d`) gerektirir.
+        \n\nLütfen &TERMUX_APP_NAME; uygulamasını kaldırıp doğru APK varyantını yükleyin.</string>
+    <string name="bootstrap_error_not_primary_user_message">&TERMUX_APP_NAME; yalnızca birincil kullanıcı olarak çalıştırılabilir.
+        \n&TERMUX_APP_NAME; için derlenen başlangıç paketleri sabit $PREFIX yoluna sahiptir ve şundan başka bir konuma kurulamaz:\n%1$s.</string>
+    <string name="bootstrap_error_installed_on_portable_sd">&TERMUX_APP_NAME; cihazınızdaki harici/taşınabilir SD karta kurulamaz.
+        \n&TERMUX_APP_NAME; için derlenen başlangıç paketleri sabit $PREFIX yoluna sahiptir ve şundan başka bir konuma kurulamaz:\n%1$s.</string>
+
+
+
+    <!-- Terminal Sidebar and Shortcuts -->
+    <string name="action_new_session">Yeni oturum</string>
+    <string name="action_new_session_failsafe">Kurtarma modu (Failsafe)</string>
+    <string name="title_max_terminals_reached">Maksimum terminal sayısına ulaşıldı</string>
+    <string name="msg_max_terminals_reached">Yeni bir oturum oluşturmadan önce mevcut olanlardan birini kapatın.</string>
+
+    <string name="title_rename_session">Oturum adını ayarla</string>
+    <string name="action_rename_session_confirm">Ayarla</string>
+    <string name="title_create_named_session">Yeni adlandırılmış oturum</string>
+    <string name="action_create_named_session_confirm">Oluştur</string>
+
+    <string name="action_toggle_soft_keyboard">Klavye</string>
+
+    <string name="msg_enabling_terminal_toolbar">Terminal Araç Çubuğu Etkinleştiriliyor</string>
+    <string name="msg_disabling_terminal_toolbar">Terminal Araç Çubuğu Devre Dışı Bırakılıyor</string>
+
+
+
+    <!-- Terminal Popup -->
+    <string name="action_select_url">Bağlantı seç (URL)</string>
+    <string name="title_select_url_dialog">Kopyalamak için tıklayın, açmak için basılı tutun</string>
+    <string name="title_select_url_none_found">Terminalde bağlantı (URL) bulunamadı.</string>
+    <string name="msg_select_url_copied_to_clipboard">Bağlantı panoya kopyalandı</string>
+
+    <string name="action_share_transcript">Terminal dökümünü paylaş</string>
+    <string name="title_share_transcript">Terminal dökümü</string>
+    <string name="title_share_transcript_with">Dökümü şuraya gönder:</string>
+
+    <string name="action_share_selected_text">Seçili metni paylaş</string>
+    <string name="title_share_selected_text">Terminal Metni</string>
+    <string name="title_share_selected_text_with">Seçili metni şuraya gönder:</string>
+
+    <string name="action_autofill_username">Kullanıcı adını doldur</string>
+    <string name="action_autofill_password">Şifreyi doldur</string>
+
+    <string name="action_reset_terminal">Sıfırla</string>
+    <string name="msg_terminal_reset">Terminal sıfırlandı</string>
+
+    <string name="action_kill_process">Süreci sonlandır (%d)</string>
+    <string name="title_confirm_kill_process">Bu oturum gerçekten kapatılsın mı?</string>
+
+    <string name="action_style_terminal">Görünüm ve Tema</string>
+    <string name="action_toggle_keep_screen_on">Ekranı açık tut</string>
+    <string name="action_open_help">Yardım</string>
+    <string name="action_open_settings">Ayarlar</string>
+
+    <string name="action_report_issue">Sorun Bildir</string>
+    <string name="msg_generating_report">Rapor Oluşturuluyor</string>
+    <string name="msg_add_termux_debug_info">Rapora hata ayıklama bilgisi eklensin mi?</string>
+
+    <string name="error_styling_not_installed">&TERMUX_STYLING_APP_NAME; eklenti uygulaması yüklü değil.</string>
+    <string name="action_styling_install">Yükle</string>
+
+
+
+    <!-- Termux Notifications -->
+    <string name="notification_action_exit">Çıkış</string>
+    <string name="notification_action_wake_lock">Uyanık kalmayı kilitle (Wakelock)</string>
+    <string name="notification_action_wake_unlock">Uyanık kalma kilidini bırak</string>
+
+
+
+    <!-- TermuxService -->
+    <string name="error_display_over_other_apps_permission_not_granted_to_start_terminal">&TERMUX_APP_NAME;, Android 10 ve üzerinde arka plandan terminal oturumu başlatabilmek için
+        \"Diğer uygulamaların üzerinde görüntüleme\" iznine ihtiyaç duyar.
+        Bunu Ayarlar -> Uygulamalar -> &TERMUX_APP_NAME; -> Gelişmiş bölümünden etkinleştirin.</string>
+    <string name="error_termux_service_invalid_execution_command_runner">TermuxService için geçersiz komut yürütücü: `%1$s`</string>
+    <string name="error_termux_service_unsupported_execution_command_runner">TermuxService için desteklenmeyen komut yürütücü: `%1$s`</string>
+    <string name="error_termux_service_unsupported_execution_command_shell_create_mode">TermuxService için desteklenmeyen kabuk oluşturma modu: `%1$s`</string>
+    <string name="error_termux_service_execution_command_shell_name_unset">Kabuk adı belirtilmedi ancak `%1$s` kabuk modu iletildi</string>
+
+
+
+    <!-- Termux RunCommandService -->
+    <string name="error_run_command_service_invalid_intent_action">RunCommandService için geçersiz intent eylemi: `%1$s`</string>
+    <string name="error_run_command_service_invalid_execution_command_runner">RunCommandService için geçersiz komut yürütücü: `%1$s`</string>
+    <string name="error_run_command_service_mandatory_extra_missing">RunCommandService için zorunlu ek parametre eksik: \"%1$s\"</string>
+    <string name="error_run_command_service_api_help">RUN_COMMAND Intent kullanımı hakkında daha fazla bilgi için %1$s adresini ziyaret edin.</string>
+
+
+
+    <!-- Termux File Receiver -->
+    <string name="title_file_received">Dosyayı ~/downloads/ içine kaydet</string>
+    <string name="action_file_received_edit">Düzenle</string>
+    <string name="action_file_received_open_directory">Klasörü aç</string>
+
+
+
+    <!-- Miscellaneous -->
+    <string name="error_termux_service_start_failed_general">TermuxService başlatılamadı. Hata mesajı için logcat çıktısını kontrol edin.</string>
+    <string name="error_termux_service_start_failed_bg">Android arka plan kısıtlamaları nedeniyle uygulama arka plandayken TermuxService başlatılamadı.</string>
+
+
+
+    <!-- Termux Settings -->
+    <string name="title_activity_termux_settings">&TERMUX_APP_NAME; Ayarları</string>
+
+    <!-- Termux App Preferences -->
+    <string name="termux_preferences_title">&TERMUX_APP_NAME;</string>
+    <string name="termux_preferences_summary">&TERMUX_APP_NAME; uygulaması için tercihler</string>
+
+        <!-- Debugging Preferences -->
+        <string name="termux_debugging_preferences_title">Hata Ayıklama</string>
+        <string name="termux_debugging_preferences_summary">Hata ayıklama tercihleri</string>
+
+            <!-- Logging Category -->
+            <string name="termux_logging_header">Günlük Kaydı (Logging)</string>
+
+                <!-- Log Level -->
+                <string name="termux_log_level_title">Günlük Düzeyi</string>
+
+                <!-- Terminal View Key Logging -->
+                <string name="termux_terminal_view_key_logging_enabled_title">Terminal Tuş Girişi Günlüğü</string>
+                <string name="termux_terminal_view_key_logging_enabled_off">Terminal tuş girdileri logcat günlüğüne yazılmaz. (Varsayılan)</string>
+                <string name="termux_terminal_view_key_logging_enabled_on">Logcat günlükleri terminal tuş girdilerini içerir.
+                    Bu işlem çok ayrıntılıdır ve performans düşüşüne yol açabilir.</string>
+
+                <!-- Plugin Error Notifications -->
+                <string name="termux_plugin_error_notifications_enabled_title">Eklenti Hata Bildirimleri</string>
+                <string name="termux_plugin_error_notifications_enabled_off">Eklenti hataları için bildirimleri devre dışı bırak.</string>
+                <string name="termux_plugin_error_notifications_enabled_on">Eklenti hataları için bildirimleri göster. (Varsayılan)</string>
+
+                <!-- Crash Report Notifications -->
+                <string name="termux_crash_report_notifications_enabled_title">Çökme Raporu Bildirimleri</string>
+                <string name="termux_crash_report_notifications_enabled_off">Çökme raporları için bildirimleri devre dışı bırak.</string>
+                <string name="termux_crash_report_notifications_enabled_on">Çökme raporları için bildirimleri göster. (Varsayılan)</string>
+
+
+        <!-- Terminal IO Preferences -->
+        <string name="termux_terminal_io_preferences_title">Terminal Giriş / Çıkış (G/Ç)</string>
+        <string name="termux_terminal_io_preferences_summary">Terminal G/Ç tercihleri</string>
+
+            <!-- Keyboard Category -->
+            <string name="termux_keyboard_header">Klavye</string>
+
+                <!-- Soft Keyboard -->
+                <string name="termux_soft_keyboard_enabled_title">Sanal Klavye Etkin</string>
+                <string name="termux_soft_keyboard_enabled_off">Sanal klavye devre dışı bırakılır.</string>
+                <string name="termux_soft_keyboard_enabled_on">Sanal klavye etkinleştirilir. (Varsayılan)</string>
+
+                <!-- Soft Keyboard Only If No Hardware-->
+                <string name="termux_soft_keyboard_enabled_only_if_no_hardware_title">Yalnızca Donanım Klavyesi Yoksa Sanal Klavyeyi Göster</string>
+                <string name="termux_soft_keyboard_enabled_only_if_no_hardware_off">Fiziksel donanım klavyesi bağlı olsa bile sanal klavye etkinleştirilir. (Varsayılan)</string>
+                <string name="termux_soft_keyboard_enabled_only_if_no_hardware_on">Sanal klavye yalnızca fiziksel klavye bağlı DEĞİLSE etkinleştirilir.</string>
+
+
+        <!-- Terminal View Preferences -->
+        <string name="termux_terminal_view_preferences_title">Terminal Görünümü</string>
+        <string name="termux_terminal_view_preferences_summary">Terminal görünümü tercihleri</string>
+
+            <!-- View Category -->
+            <string name="termux_terminal_view_view_header">Görünüm</string>
+
+                <!-- Terminal View Margin Adjustment -->
+                <string name="termux_terminal_view_terminal_margin_adjustment_title">Terminal Kenar Boşluğu Ayarı</string>
+                <string name="termux_terminal_view_terminal_margin_adjustment_off">Terminal kenar boşluğu ayarı devre dışı bırakılır.</string>
+                <string name="termux_terminal_view_terminal_margin_adjustment_on">Terminal kenar boşluğu ayarı etkinleştirilir.
+                    Sanal klavyenin ekstra tuşları kapattığı durumları düzeltmek için kullanılır.
+                    Cihazınızda ekran titremesine yol açarsa devre dışı bırakın. (Varsayılan)</string>
+
+
+
+    <!-- Termux:API App Preferences -->
+    <string name="termux_api_preferences_title">&TERMUX_API_APP_NAME;</string>
+    <string name="termux_api_preferences_summary">&TERMUX_API_APP_NAME; uygulaması için tercihler</string>
+
+
+
+    <!-- Termux:Float App Preferences -->
+    <string name="termux_float_preferences_title">&TERMUX_FLOAT_APP_NAME;</string>
+    <string name="termux_float_preferences_summary">&TERMUX_FLOAT_APP_NAME; uygulaması için tercihler</string>
+
+
+
+    <!-- Termux:Tasker App Preferences -->
+    <string name="termux_tasker_preferences_title">&TERMUX_TASKER_APP_NAME;</string>
+    <string name="termux_tasker_preferences_summary">&TERMUX_TASKER_APP_NAME; uygulaması için tercihler</string>
+
+
+
+    <!-- Termux:Widget App Preferences -->
+    <string name="termux_widget_preferences_title">&TERMUX_WIDGET_APP_NAME;</string>
+    <string name="termux_widget_preferences_summary">&TERMUX_WIDGET_APP_NAME; uygulaması için tercihler</string>
+
+
+
+    <!-- About Preference -->
+    <string name="about_preference_title">Hakkında</string>
+
+    <!-- Donate Preference -->
+    <string name="donate_preference_title">Bağış Yap</string>
+
+</resources>

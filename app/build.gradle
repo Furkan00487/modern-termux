@@ -199,18 +199,30 @@ def patchBootstrapZip(File zipFile, String fromPkg, String toPkg) {
         byte[] data = baos.toByteArray()
 
         if (!entry.isDirectory()) {
-            for (int i = 0; i <= data.length - fromBytes.length; i++) {
-                boolean match = true
-                for (int j = 0; j < fromBytes.length; j++) {
-                    if (data[i + j] != fromBytes[j]) {
-                        match = false
-                        break
+            if (entry.name.endsWith("etc/motd")) {
+                String trMotd = "\033[1;34m╔════════════════════════════════════════════════════════╗\n" +
+                                "║              MODERN TERMUX'A HOŞ GELDİN!               ║\n" +
+                                "╚════════════════════════════════════════════════════════╝\033[0m\n\n" +
+                                " Paket aramak için:          \033[1;32mpkg search <sorgu>\033[0m\n" +
+                                " Paket kurmak için:          \033[1;32mpkg install <paket>\033[0m\n" +
+                                " Paketleri güncellemek için: \033[1;32mpkg upgrade\033[0m\n" +
+                                " Sistem bilgisi:             \033[1;32mtermux-info\033[0m\n\n" +
+                                " Topluluk & Destek: https://github.com/Furkan00487/modern-termux\n\n"
+                data = trMotd.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+            } else {
+                for (int i = 0; i <= data.length - fromBytes.length; i++) {
+                    boolean match = true
+                    for (int j = 0; j < fromBytes.length; j++) {
+                        if (data[i + j] != fromBytes[j]) {
+                            match = false
+                            break
+                        }
                     }
-                }
-                if (match) {
-                    System.arraycopy(toBytes, 0, data, i, toBytes.length)
-                    replacedCount++
-                    i += fromBytes.length - 1
+                    if (match) {
+                        System.arraycopy(toBytes, 0, data, i, toBytes.length)
+                        replacedCount++
+                        i += fromBytes.length - 1
+                    }
                 }
             }
         }
