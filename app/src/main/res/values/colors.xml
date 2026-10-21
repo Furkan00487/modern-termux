@@ -1,3 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="terminal_background">#FF0B0F19</color>
 </resources>
