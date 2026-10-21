@@ -100,6 +100,15 @@
     <string name="notification_action_exit">Çıkış</string>
     <string name="notification_action_wake_lock">Uyanık kalmayı kilitle (Wakelock)</string>
     <string name="notification_action_wake_unlock">Uyanık kalma kilidini bırak</string>
+    <plurals name="notification_text_sessions">
+        <item quantity="one">%1$d oturum</item>
+        <item quantity="other">%1$d oturum</item>
+    </plurals>
+    <plurals name="notification_text_tasks">
+        <item quantity="one">%1$d görev</item>
+        <item quantity="other">%1$d görev</item>
+    </plurals>
+    <string name="notification_text_wake_lock_held">(uyanık kalma kilidi etkin)</string>
 
 
 
