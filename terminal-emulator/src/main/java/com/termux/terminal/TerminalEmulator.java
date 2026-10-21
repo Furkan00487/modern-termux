@@ -244,6 +244,11 @@ public final class TerminalEmulator {
     private boolean mCursorBlinkState;
 
     /**
+     * Whether multi-line pasted text converts newlines to spaces to prevent accidental command execution.
+     */
+    private boolean mPasteNewlinesAsSpaces = true;
+
+    /**
      * Current foreground, background and underline colors. Can either be a color index in [0,259] or a truecolor (24-bit) value.
      * For a 24-bit value the top byte (0xff000000) is set.
      *
@@ -2585,12 +2590,26 @@ public final class TerminalEmulator {
         }
     }
 
+    public boolean shouldPasteNewlinesAsSpaces() {
+        return mPasteNewlinesAsSpaces;
+    }
+
+    public void setPasteNewlinesAsSpaces(boolean pasteNewlinesAsSpaces) {
+        this.mPasteNewlinesAsSpaces = pasteNewlinesAsSpaces;
+    }
+
     /** If DECSET 2004 is set, prefix paste with "\033[200~" and suffix with "\033[201~". */
     public void paste(String text) {
+        if (text == null) return;
         // First: Always remove escape key and C1 control characters [0x80,0x9F]:
         text = text.replaceAll("(\u001B|[\u0080-\u009F])", "");
-        // Second: Replace all newlines (\n) or CRLF (\r\n) with carriage returns (\r).
-        text = text.replaceAll("\r?\n", "\r");
+        // Second: Handle newlines. If mPasteNewlinesAsSpaces is true, convert all newlines to spaces
+        // to prevent accidental line-by-line command execution. Otherwise, replace CRLF or LF with CR (\r).
+        if (mPasteNewlinesAsSpaces) {
+            text = text.replaceAll("\r?\n", " ");
+        } else {
+            text = text.replaceAll("\r?\n", "\r");
+        }
 
         // Then: Implement bracketed paste mode if enabled:
         boolean bracketed = isDecsetInternalBitSet(DECSET_BIT_BRACKETED_PASTE_MODE);

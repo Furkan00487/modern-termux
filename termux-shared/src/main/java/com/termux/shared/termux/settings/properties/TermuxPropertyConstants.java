@@ -137,6 +137,11 @@ public final class TermuxPropertyConstants {
 
 
 
+    /** Defines the key for whether multi-line pasted text converts newlines to spaces to prevent accidental command execution. */
+    public static final String KEY_PASTE_NEWLINES_AS_SPACES = "paste-newlines-as-spaces"; // Default: "paste-newlines-as-spaces"
+
+
+
     /** Defines the key for whether url links in terminal transcript will automatically open on click or on tap */
     public static final String KEY_TERMINAL_ONCLICK_URL_OPEN =  "terminal-onclick-url-open"; // Default: "terminal-onclick-url-open"
 
@@ -398,6 +403,7 @@ public final class TermuxPropertyConstants {
         KEY_ENFORCE_CHAR_BASED_INPUT,
         KEY_EXTRA_KEYS_TEXT_ALL_CAPS,
         KEY_HIDE_SOFT_KEYBOARD_ON_STARTUP,
+        KEY_PASTE_NEWLINES_AS_SPACES,
         KEY_RUN_TERMUX_AM_SOCKET_SERVER,
         KEY_TERMINAL_ONCLICK_URL_OPEN,
         KEY_USE_CTRL_SPACE_WORKAROUND,
@@ -459,6 +465,7 @@ public final class TermuxPropertyConstants {
      */
     public static final Set<String> TERMUX_DEFAULT_TRUE_BOOLEAN_BEHAVIOUR_PROPERTIES_LIST = new HashSet<>(Arrays.asList(
         KEY_EXTRA_KEYS_TEXT_ALL_CAPS,
+        KEY_PASTE_NEWLINES_AS_SPACES,
         KEY_RUN_TERMUX_AM_SOCKET_SERVER
     ));
 

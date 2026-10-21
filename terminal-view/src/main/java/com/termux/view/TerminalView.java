@@ -53,6 +53,20 @@ public final class TerminalView extends View {
     /** Our terminal emulator whose session is {@link #mTermSession}. */
     public TerminalEmulator mEmulator;
 
+    /** Whether multi-line pasted text converts newlines to spaces to prevent accidental command execution. */
+    private boolean mPasteNewlinesAsSpaces = true;
+
+    public boolean shouldPasteNewlinesAsSpaces() {
+        return mPasteNewlinesAsSpaces;
+    }
+
+    public void setPasteNewlinesAsSpaces(boolean pasteNewlinesAsSpaces) {
+        this.mPasteNewlinesAsSpaces = pasteNewlinesAsSpaces;
+        if (mEmulator != null) {
+            mEmulator.setPasteNewlinesAsSpaces(pasteNewlinesAsSpaces);
+        }
+    }
+
     public TerminalRenderer mRenderer;
 
     public TerminalViewClient mClient;
@@ -297,6 +311,10 @@ public final class TerminalView extends View {
 
         updateSize();
 
+        if (mEmulator != null) {
+            mEmulator.setPasteNewlinesAsSpaces(mPasteNewlinesAsSpaces);
+        }
+
         // Wait with enabling the scrollbar until we have a terminal to get scroll position from.
         setVerticalScrollBarEnabled(true);
 
@@ -378,13 +396,18 @@ public final class TerminalView extends View {
 
             void sendTextToTerminal(CharSequence text) {
                 stopTextSelectionMode();
-                final int textLengthInChars = text.length();
+                if (text == null) return;
+                String processedText = text.toString();
+                if (mPasteNewlinesAsSpaces && processedText.length() > 1) {
+                    processedText = processedText.replaceAll("\r?\n", " ");
+                }
+                final int textLengthInChars = processedText.length();
                 for (int i = 0; i < textLengthInChars; i++) {
-                    char firstChar = text.charAt(i);
+                    char firstChar = processedText.charAt(i);
                     int codePoint;
                     if (Character.isHighSurrogate(firstChar)) {
                         if (++i < textLengthInChars) {
-                            codePoint = Character.toCodePoint(firstChar, text.charAt(i));
+                            codePoint = Character.toCodePoint(firstChar, processedText.charAt(i));
                         } else {
                             // At end of string, with no low surrogate following the high:
                             codePoint = TerminalEmulator.UNICODE_REPLACEMENT_CHAR;
@@ -991,6 +1014,9 @@ public final class TerminalView extends View {
         if (mEmulator == null || (newColumns != mEmulator.mColumns || newRows != mEmulator.mRows)) {
             mTermSession.updateSize(newColumns, newRows, (int) mRenderer.getFontWidth(), mRenderer.getFontLineSpacing());
             mEmulator = mTermSession.getEmulator();
+            if (mEmulator != null) {
+                mEmulator.setPasteNewlinesAsSpaces(mPasteNewlinesAsSpaces);
+            }
             mClient.onEmulatorSet();
 
             // Update mTerminalCursorBlinkerRunnable inner class mEmulator on session change

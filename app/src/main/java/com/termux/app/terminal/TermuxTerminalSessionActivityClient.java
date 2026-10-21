@@ -192,8 +192,12 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
         if (!mActivity.isVisible()) return;
 
         String text = ShareUtils.getTextStringFromClipboardIfSet(mActivity, true);
-        if (text != null)
+        if (text != null && mActivity.getTerminalView() != null && mActivity.getTerminalView().mEmulator != null) {
+            if (mActivity.getProperties() != null) {
+                mActivity.getTerminalView().mEmulator.setPasteNewlinesAsSpaces(mActivity.getProperties().shouldPasteNewlinesAsSpaces());
+            }
             mActivity.getTerminalView().mEmulator.paste(text);
+        }
     }
 
     @Override
