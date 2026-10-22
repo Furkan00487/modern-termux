@@ -93,7 +93,7 @@ jobs:
             --ks-pass "pass:$KEYSTORE_PASSWORD" \
             --ks-key-alias "$KEYSTORE_ALIAS" \
             --key-pass "pass:$KEYSTORE_PASSWORD" \
-            --v1-signing-enabled true \
+            --v1-signing-enabled false \
             --v2-signing-enabled true \
             --v3-signing-enabled true \
             --v4-signing-enabled false \
