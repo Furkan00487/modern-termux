@@ -206,13 +206,27 @@ public class FileReceiverActivity extends AppCompatActivity {
             return null;
         }
 
+        // Sanitize file name to strip path traversal components and prevent path injection
+        String sanitizedFileName = new File(attachmentFileName).getName();
+        if (DataUtils.isNullOrEmpty(sanitizedFileName)) {
+            showErrorDialogAndQuit("Invalid file name: " + attachmentFileName);
+            return null;
+        }
+
         if (!receiveDir.isDirectory() && !receiveDir.mkdirs()) {
             showErrorDialogAndQuit("Cannot create directory: " + receiveDir.getAbsolutePath());
             return null;
         }
 
         try {
-            final File outFile = new File(receiveDir, attachmentFileName);
+            final File outFile = new File(receiveDir, sanitizedFileName);
+            String canonicalReceiveDir = receiveDir.getCanonicalPath();
+            String canonicalOutFile = outFile.getCanonicalPath();
+            if (!canonicalOutFile.startsWith(canonicalReceiveDir + File.separator)) {
+                showErrorDialogAndQuit("Invalid file path: " + attachmentFileName);
+                return null;
+            }
+
             try (FileOutputStream f = new FileOutputStream(outFile)) {
                 byte[] buffer = new byte[4096];
                 int readBytes;

@@ -190,6 +190,15 @@ final class TermuxInstaller {
                             } else {
                                 String zipEntryName = zipEntry.getName();
                                 File targetFile = new File(TERMUX_STAGING_PREFIX_DIR_PATH, zipEntryName);
+
+                                // Security check to prevent Zip Slip (path traversal) vulnerability
+                                String canonicalDestDirPath = new File(TERMUX_STAGING_PREFIX_DIR_PATH).getCanonicalPath();
+                                String canonicalTargetFilePath = targetFile.getCanonicalPath();
+                                if (!canonicalTargetFilePath.startsWith(canonicalDestDirPath + File.separator) &&
+                                    !canonicalTargetFilePath.equals(canonicalDestDirPath)) {
+                                    throw new SecurityException("Zip entry is outside of target dir: " + zipEntryName);
+                                }
+
                                 boolean isDirectory = zipEntry.isDirectory();
 
                                 error = ensureDirectoryExists(isDirectory ? targetFile : targetFile.getParentFile());
