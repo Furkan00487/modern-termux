@@ -24,4 +24,4 @@ If you discover a security vulnerability in Modern Termux, please report it resp
 - Step-by-step instructions or a minimal proof of concept (PoC) to reproduce the issue.
 - Affected Android version, device architecture, and app build details.
 
-We will review incoming reports promptly and coordinate a fix before any public disclosure.
+We will review incoming reports promptly and coordinate a fix before any public disclosure. Security advisories and patched builds will be published via GitHub Releases.
