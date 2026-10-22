@@ -53,7 +53,7 @@ android {
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
 
-        applicationId "com.modtux"
+        applicationId "com.termux"
 
         buildConfigField "String", "TERMUX_PACKAGE_VARIANT", "\"" + project.ext.packageVariant + "\"" // Used by TermuxApplication class
         buildConfigField "int", "TERMUX_APP__BOOTSTRAP_MIN_SDK", "" + project.ext.bootstrapMinSdk
@@ -61,7 +61,7 @@ android {
         buildConfigField "int", "TERMUX_APP__BOOTSTRAP_MAX_SDK", "" + project.ext.bootstrapMaxSdk
         buildConfigField "String", "TERMUX_APP__BOOTSTRAP_MAX_RELEASE", "\"" + project.ext.bootstrapMaxRelease + "\""
 
-        manifestPlaceholders.TERMUX_PACKAGE_NAME = "com.modtux"
+        manifestPlaceholders.TERMUX_PACKAGE_NAME = "com.termux"
         manifestPlaceholders.TERMUX_APP_NAME = "Modern Termux"
         manifestPlaceholders.TERMUX_API_APP_NAME = "Termux:API"
         manifestPlaceholders.TERMUX_BOOT_APP_NAME = "Termux:Boot"
@@ -165,17 +165,11 @@ def validateVersionName(String versionName) {
         throw new GradleException("The versionName '"  + versionName + "' is not a valid version as per semantic version '2.0.0' spec in the format 'major.minor.patch(-prerelease)(+buildmetadata)'. https://semver.org/spec/v2.0.0.html.")
 }
 
-def patchBootstrapZip(File zipFile, String fromPkg, String toPkg) {
-    byte[] fromBytes = fromPkg.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-    byte[] toBytes = toPkg.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-    if (fromBytes.length != toBytes.length) {
-        throw new GradleException("Package name replacement lengths must match exactly! " + fromBytes.length + " != " + toBytes.length)
-    }
-    File tempFile = new File(zipFile.parentFile, zipFile.name + ".patched.tmp")
+def patchBootstrapMotd(File zipFile) {
+    File tempFile = new File(zipFile.parentFile, zipFile.name + ".motd.tmp")
     java.util.zip.ZipFile zf = new java.util.zip.ZipFile(zipFile)
     java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile)))
 
-    int replacedCount = 0
     Enumeration<? extends java.util.zip.ZipEntry> entries = zf.entries()
     byte[] buf = new byte[8192]
     while (entries.hasMoreElements()) {
@@ -189,33 +183,16 @@ def patchBootstrapZip(File zipFile, String fromPkg, String toPkg) {
         is.close()
         byte[] data = baos.toByteArray()
 
-        if (!entry.isDirectory()) {
-            if (entry.name.endsWith("etc/motd")) {
-                String trMotd = "\033[1;34m╔════════════════════════════════════════════════════════╗\n" +
-                                "║              MODERN TERMUX'A HOŞ GELDİN!               ║\n" +
-                                "╚════════════════════════════════════════════════════════╝\033[0m\n\n" +
-                                " Paket aramak için:          \033[1;32mpkg search <sorgu>\033[0m\n" +
-                                " Paket kurmak için:          \033[1;32mpkg install <paket>\033[0m\n" +
-                                " Paketleri güncellemek için: \033[1;32mpkg upgrade\033[0m\n" +
-                                " Sistem bilgisi:             \033[1;32mtermux-info\033[0m\n\n" +
-                                " Topluluk & Destek: https://github.com/Furkan00487/modern-termux\n\n"
-                data = trMotd.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-            } else {
-                for (int i = 0; i <= data.length - fromBytes.length; i++) {
-                    boolean match = true
-                    for (int j = 0; j < fromBytes.length; j++) {
-                        if (data[i + j] != fromBytes[j]) {
-                            match = false
-                            break
-                        }
-                    }
-                    if (match) {
-                        System.arraycopy(toBytes, 0, data, i, toBytes.length)
-                        replacedCount++
-                        i += fromBytes.length - 1
-                    }
-                }
-            }
+        if (!entry.isDirectory() && entry.name.endsWith("etc/motd")) {
+            String trMotd = "\033[1;34m╔════════════════════════════════════════════════════════╗\n" +
+                            "║              MODERN TERMUX'A HOŞ GELDİN!               ║\n" +
+                            "╚════════════════════════════════════════════════════════╝\033[0m\n\n" +
+                            " Paket aramak için:          \033[1;32mpkg search <sorgu>\033[0m\n" +
+                            " Paket kurmak için:          \033[1;32mpkg install <paket>\033[0m\n" +
+                            " Paketleri güncellemek için: \033[1;32mpkg upgrade\033[0m\n" +
+                            " Sistem bilgisi:             \033[1;32mtermux-info\033[0m\n\n" +
+                            " Topluluk & Destek: https://github.com/Furkan00487/modern-termux\n\n"
+            data = trMotd.getBytes(java.nio.charset.StandardCharsets.UTF_8)
         }
 
         java.util.zip.ZipEntry newEntry = new java.util.zip.ZipEntry(entry.name)
@@ -230,7 +207,7 @@ def patchBootstrapZip(File zipFile, String fromPkg, String toPkg) {
     if (!tempFile.renameTo(zipFile)) {
         throw new GradleException("Failed to rename patched bootstrap zip file")
     }
-    logger.quiet("Patched bootstrap zip (" + zipFile.name + "): replaced " + replacedCount + " occurrences of '" + fromPkg + "' with '" + toPkg + "'")
+    logger.quiet("Patched bootstrap zip (" + zipFile.name + ") with custom Turkish MOTD banner")
 }
 
 def downloadBootstrap(String arch, String expectedChecksum, String version) {
@@ -254,7 +231,7 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
         def checksum = new BigInteger(1, digest.digest()).toString(16)
         while (checksum.length() < 64) { checksum = "0" + checksum }
         if (checksum == expectedChecksum) {
-            patchBootstrapZip(file, "com.termux", "com.modtux")
+            patchBootstrapMotd(file)
             patchedMarker.text = "patched"
             return
         } else {
@@ -284,7 +261,7 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
         throw new GradleException("Wrong checksum for " + remoteUrl + ": expected: " + expectedChecksum + ", actual: " + checksum)
     }
 
-    patchBootstrapZip(file, "com.termux", "com.modtux")
+    patchBootstrapMotd(file)
     patchedMarker.text = "patched"
 }
 
