@@ -193,6 +193,33 @@ def patchBootstrapMotd(File zipFile) {
                             " Sistem bilgisi:             \033[1;32mtermux-info\033[0m\n\n" +
                             " Topluluk & Destek: https://github.com/Furkan00487/modern-termux\n\n"
             data = trMotd.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        } else if (!entry.isDirectory() && entry.name.endsWith("bin/termux-setup-storage")) {
+            String trSetupStorage = "#!/data/data/com.termux/files/usr/bin/bash\n\n" +
+                                    "if [ \"\$#\" != \"0\" ]; then\n" +
+                                    "\techo 'kullanım: termux-setup-storage'\n" +
+                                    "\techo 'Depolama izninin verildiğinden ve \$HOME/storage altında sembolik'\n" +
+                                    "\techo 'bağlantıların hazır olduğundan emin olmak için argümansız çalıştırın'\n" +
+                                    "\texit\n" +
+                                    "fi\n\n" +
+                                    "if [ -d \"/data/data/com.termux/files/home/storage\" ]; then\n" +
+                                    "\tcat <<- EOF\n\n" +
+                                    "\t'~/storage' dizini zaten mevcut görünüyor.\n" +
+                                    "\tBu betik, yapısını sıfırdan yeniden oluşturacak ve\n" +
+                                    "\tbağlantısı kopmuş tüm geçersiz dosyaları temizleyecektir.\n" +
+                                    "\tGerçek depolama içeriğiniz KESİNLİKLE SİLİNMEYECEKTİR.\n\n" +
+                                    "\tEOF\n" +
+                                    "\tread -re -p \"Devam etmek istiyor musunuz? (e/h) \" CHOICE\n\n" +
+                                    "\tif ! [[ \"\${CHOICE}\" =~ ^[eEyY] ]]; then\n" +
+                                    "\t\techo \"Yapılandırma iptal edildi ve '~/storage' dizinine dokunulmadı.\"\n" +
+                                    "\t\texit 1\n" +
+                                    "\tfi\n" +
+                                    "fi\n\n" +
+                                    "case \"\${TERMUX__USER_ID:-}\" in ''|*[!0-9]*|0[0-9]*) TERMUX__USER_ID=0;; esac\n\n" +
+                                    "am broadcast --user \"\$TERMUX__USER_ID\" \\\n" +
+                                    "\t-a \"com.termux.app.reload_style\" \\\n" +
+                                    "\t--es \"com.termux.app.reload_style\" \"storage\" \\\n" +
+                                    "\t \"com.termux\" > /dev/null\n"
+            data = trSetupStorage.getBytes(java.nio.charset.StandardCharsets.UTF_8)
         }
 
         java.util.zip.ZipEntry newEntry = new java.util.zip.ZipEntry(entry.name)
@@ -207,7 +234,7 @@ def patchBootstrapMotd(File zipFile) {
     if (!tempFile.renameTo(zipFile)) {
         throw new GradleException("Failed to rename patched bootstrap zip file")
     }
-    logger.quiet("Patched bootstrap zip (" + zipFile.name + ") with custom Turkish MOTD banner")
+    logger.quiet("Patched bootstrap zip (" + zipFile.name + ") with custom Turkish MOTD banner and termux-setup-storage")
 }
 
 def downloadBootstrap(String arch, String expectedChecksum, String version) {
