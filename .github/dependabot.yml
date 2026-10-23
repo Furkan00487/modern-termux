@@ -10,6 +10,9 @@ updates:
     open-pull-requests-limit: 10
     commit-message:
       prefix: "Changed"
+    ignore:
+      - dependency-name: "gradle"
+        versions: [">= 9.6.0"]
     groups:
       gradle-dependencies:
         patterns:
