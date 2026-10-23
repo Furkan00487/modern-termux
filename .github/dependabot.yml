@@ -11,6 +11,8 @@ updates:
     commit-message:
       prefix: "Changed"
     ignore:
+      - dependency-name: "gradle-wrapper"
+        versions: [">= 9.3.0"]
       - dependency-name: "gradle"
         versions: [">= 9.3.0"]
     groups:
