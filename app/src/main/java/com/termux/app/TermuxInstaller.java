@@ -31,6 +31,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -189,14 +190,13 @@ final class TermuxInstaller {
                                 }
                             } else {
                                 String zipEntryName = zipEntry.getName();
-                                File targetFile = new File(TERMUX_STAGING_PREFIX_DIR_PATH, zipEntryName);
+                                File targetFile = new File(TERMUX_STAGING_PREFIX_DIR, zipEntryName);
 
                                 // Security check to prevent Zip Slip (path traversal) vulnerability
-                                String canonicalDestDirPath = new File(TERMUX_STAGING_PREFIX_DIR_PATH).getCanonicalPath();
+                                String canonicalDestDirPath = TERMUX_STAGING_PREFIX_DIR.getCanonicalPath();
                                 String canonicalTargetFilePath = targetFile.getCanonicalPath();
-                                if (!canonicalTargetFilePath.startsWith(canonicalDestDirPath + File.separator) &&
-                                    !canonicalTargetFilePath.equals(canonicalDestDirPath)) {
-                                    throw new SecurityException("Zip entry is outside of target dir: " + zipEntryName);
+                                if (!canonicalTargetFilePath.startsWith(canonicalDestDirPath + File.separator)) {
+                                    throw new IOException("Zip entry is outside of target dir: " + zipEntryName);
                                 }
 
                                 boolean isDirectory = zipEntry.isDirectory();
