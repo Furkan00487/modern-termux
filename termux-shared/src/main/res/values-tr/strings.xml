@@ -112,6 +112,10 @@
     <string name="msg_storage_permission_granted_on_request">Depolama izni kullanıcı tarafından verildi</string>
     <string name="msg_storage_permission_not_granted_on_request">Depolama izni kullanıcı tarafından verilmedi</string>
 
+    <string name="msg_microphone_permission_already_granted">Mikrofon izni zaten verilmiş</string>
+    <string name="msg_microphone_permission_granted_on_request">Mikrofon izni kullanıcı tarafından verildi</string>
+    <string name="msg_microphone_permission_not_granted_on_request">Mikrofon izni kullanıcı tarafından verilmedi</string>
+
 
 
     <!-- Launcher Icons -->

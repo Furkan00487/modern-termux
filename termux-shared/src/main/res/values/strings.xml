@@ -113,6 +113,10 @@
     <string name="msg_storage_permission_granted_on_request">The storage permission granted by user on request</string>
     <string name="msg_storage_permission_not_granted_on_request">The storage permission not granted by user on request</string>
 
+    <string name="msg_microphone_permission_already_granted">The microphone permission is already granted</string>
+    <string name="msg_microphone_permission_granted_on_request">The microphone permission granted by user on request</string>
+    <string name="msg_microphone_permission_not_granted_on_request">The microphone permission not granted by user on request</string>
+
 
 
     <!-- Launcher Icons -->

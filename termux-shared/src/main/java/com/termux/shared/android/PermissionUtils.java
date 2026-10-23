@@ -35,6 +35,7 @@ import java.util.List;
 public class PermissionUtils {
 
     public static final int REQUEST_GRANT_STORAGE_PERMISSION = 1000;
+    public static final int REQUEST_GRANT_MICROPHONE_PERMISSION = 1001;
 
     public static final int REQUEST_DISABLE_BATTERY_OPTIMIZATIONS = 2000;
     public static final int REQUEST_GRANT_DISPLAY_OVER_OTHER_APPS_PERMISSION = 2001;
@@ -97,6 +98,29 @@ public class PermissionUtils {
     public static boolean requestPermission(@NonNull Context context, @NonNull String permission,
                                             int requestCode) {
         return requestPermissions(context, new String[]{permission}, requestCode);
+    }
+
+    /**
+     * Check if the app has been granted the microphone ({@link Manifest.permission#RECORD_AUDIO}) permission.
+     *
+     * @param context The context for operations.
+     * @return Returns {@code true} if permission is granted, otherwise {@code false}.
+     */
+    public static boolean checkMicrophonePermission(@NonNull Context context) {
+        return checkPermission(context, Manifest.permission.RECORD_AUDIO);
+    }
+
+    /**
+     * Request user to grant the microphone ({@link Manifest.permission#RECORD_AUDIO}) permission.
+     *
+     * @param context The context for operations. It must be an instance of {@link Activity} or
+     * {@link AppCompatActivity}.
+     * @param requestCode The request code to use while asking for permission.
+     * @return Returns {@code true} if permission is already granted or the request was shown.
+     */
+    public static boolean requestMicrophonePermission(@NonNull Context context, int requestCode) {
+        return checkMicrophonePermission(context) ||
+            requestPermission(context, Manifest.permission.RECORD_AUDIO, requestCode);
     }
 
     /**

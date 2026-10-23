@@ -962,6 +962,9 @@ public final class TermuxConstants {
 
             /** Intent action to make termux request storage permissions */
             public static final String ACTION_REQUEST_PERMISSIONS = TermuxConstants.TERMUX_PACKAGE_NAME + ".app.request_storage_permissions"; // Default: "com.termux.app.request_storage_permissions"
+
+            /** Intent action to make termux request microphone (RECORD_AUDIO) permission */
+            public static final String ACTION_REQUEST_MICROPHONE_PERMISSION = TermuxConstants.TERMUX_PACKAGE_NAME + ".app.request_microphone_permission"; // Default: "com.termux.app.request_microphone_permission"
         }
 
 

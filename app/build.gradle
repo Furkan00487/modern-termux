@@ -172,6 +172,17 @@ def patchBootstrapMotd(File zipFile) {
 
     Enumeration<? extends java.util.zip.ZipEntry> entries = zf.entries()
     byte[] buf = new byte[8192]
+    boolean hasSetupMicrophone = false
+    String trSetupMicrophone = "#!/data/data/com.termux/files/usr/bin/bash\n\n" +
+                               "if [ \"\$#\" != \"0\" ]; then\n" +
+                               "\techo 'kullanım: termux-setup-microphone'\n" +
+                               "\techo 'Mikrofon izninin verildiğinden emin olmak için argümansız çalıştırın'\n" +
+                               "\texit\n" +
+                               "fi\n\n" +
+                               "case \"\${TERMUX__USER_ID:-}\" in ''|*[!0-9]*|0[0-9]*) TERMUX__USER_ID=0;; esac\n\n" +
+                               "am broadcast --user \"\$TERMUX__USER_ID\" \\\n" +
+                               "\t-a \"com.termux.app.request_microphone_permission\" \\\n" +
+                               "\t \"com.termux\" > /dev/null\n"
     while (entries.hasMoreElements()) {
         java.util.zip.ZipEntry entry = entries.nextElement()
         InputStream is = zf.getInputStream(entry)
@@ -220,6 +231,9 @@ def patchBootstrapMotd(File zipFile) {
                                     "\t--es \"com.termux.app.reload_style\" \"storage\" \\\n" +
                                     "\t \"com.termux\" > /dev/null\n"
             data = trSetupStorage.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        } else if (!entry.isDirectory() && entry.name.endsWith("bin/termux-setup-microphone")) {
+            hasSetupMicrophone = true
+            data = trSetupMicrophone.getBytes(java.nio.charset.StandardCharsets.UTF_8)
         }
 
         java.util.zip.ZipEntry newEntry = new java.util.zip.ZipEntry(entry.name)
@@ -228,19 +242,25 @@ def patchBootstrapMotd(File zipFile) {
         zos.write(data)
         zos.closeEntry()
     }
+    if (!hasSetupMicrophone) {
+        java.util.zip.ZipEntry micEntry = new java.util.zip.ZipEntry("bin/termux-setup-microphone")
+        zos.putNextEntry(micEntry)
+        zos.write(trSetupMicrophone.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+        zos.closeEntry()
+    }
     zos.close()
     zf.close()
     zipFile.delete()
     if (!tempFile.renameTo(zipFile)) {
         throw new GradleException("Failed to rename patched bootstrap zip file")
     }
-    logger.quiet("Patched bootstrap zip (" + zipFile.name + ") with custom Turkish MOTD banner and termux-setup-storage")
+    logger.quiet("Patched bootstrap zip (" + zipFile.name + ") with custom Turkish MOTD banner, termux-setup-storage and termux-setup-microphone")
 }
 
 def downloadBootstrap(String arch, String expectedChecksum, String version) {
     def localUrl = "src/main/cpp/bootstrap-" + arch + ".zip"
     def file = new File(projectDir, localUrl)
-    def patchedMarker = new File(projectDir, "src/main/cpp/bootstrap-" + arch + ".patched")
+    def patchedMarker = new File(projectDir, "src/main/cpp/bootstrap-" + arch + ".patched2")
     if (file.exists() && patchedMarker.exists()) {
         return
     }

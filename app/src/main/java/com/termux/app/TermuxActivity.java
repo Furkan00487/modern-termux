@@ -8,6 +8,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -790,6 +791,15 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }.start();
     }
 
+    /** Request the microphone permission so processes (e.g. voice dictation tools) can record audio. */
+    public void requestMicrophonePermission() {
+        if (PermissionUtils.checkMicrophonePermission(this)) {
+            Toast.makeText(this, com.termux.shared.R.string.msg_microphone_permission_already_granted, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        PermissionUtils.requestMicrophonePermission(this, PermissionUtils.REQUEST_GRANT_MICROPHONE_PERMISSION);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -805,6 +815,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         Logger.logVerbose(LOG_TAG, "onRequestPermissionsResult: requestCode: " + requestCode + ", permissions: "  + Arrays.toString(permissions) + ", grantResults: "  + Arrays.toString(grantResults));
         if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
             requestStoragePermission(true);
+        } else if (requestCode == PermissionUtils.REQUEST_GRANT_MICROPHONE_PERMISSION) {
+            boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            Toast.makeText(this, granted
+                ? com.termux.shared.R.string.msg_microphone_permission_granted_on_request
+                : com.termux.shared.R.string.msg_microphone_permission_not_granted_on_request, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -921,6 +936,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         intentFilter.addAction(TERMUX_ACTIVITY.ACTION_NOTIFY_APP_CRASH);
         intentFilter.addAction(TERMUX_ACTIVITY.ACTION_RELOAD_STYLE);
         intentFilter.addAction(TERMUX_ACTIVITY.ACTION_REQUEST_PERMISSIONS);
+        intentFilter.addAction(TERMUX_ACTIVITY.ACTION_REQUEST_MICROPHONE_PERMISSION);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(mTermuxActivityBroadcastReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
@@ -963,6 +979,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                     case TERMUX_ACTIVITY.ACTION_REQUEST_PERMISSIONS:
                         Logger.logDebug(LOG_TAG, "Received intent to request storage permissions");
                         requestStoragePermission(false);
+                        return;
+                    case TERMUX_ACTIVITY.ACTION_REQUEST_MICROPHONE_PERMISSION:
+                        requestMicrophonePermission();
                         return;
                     default:
                 }
