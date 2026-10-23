@@ -12,7 +12,7 @@ updates:
       prefix: "Changed"
     ignore:
       - dependency-name: "gradle"
-        versions: [">= 9.6.0"]
+        versions: [">= 9.3.0"]
     groups:
       gradle-dependencies:
         patterns:
