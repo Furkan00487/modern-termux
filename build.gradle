@@ -15,6 +15,7 @@ buildscript {
         classpath "com.google.protobuf:protobuf-java:4.36.2"
         classpath "com.google.protobuf:protobuf-kotlin:4.36.2"
         classpath "org.apache.commons:commons-compress:1.26.2"
+        classpath "org.apache.commons:commons-lang3:3.18.0"
     }
     configurations.classpath {
         resolutionStrategy {
@@ -30,6 +31,7 @@ buildscript {
             force "com.google.protobuf:protobuf-java:4.36.2"
             force "com.google.protobuf:protobuf-kotlin:4.36.2"
             force "org.apache.commons:commons-compress:1.26.2"
+            force "org.apache.commons:commons-lang3:3.18.0"
         }
     }
 }
@@ -54,6 +56,7 @@ allprojects {
             force "com.google.protobuf:protobuf-java:4.36.2"
             force "com.google.protobuf:protobuf-kotlin:4.36.2"
             force "org.apache.commons:commons-compress:1.26.2"
+            force "org.apache.commons:commons-lang3:3.18.0"
         }
     }
 }
