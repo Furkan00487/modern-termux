@@ -89,8 +89,30 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            def ksBase64 = System.getenv("KEYSTORE_BASE64")
+            def ksPass = System.getenv("KEYSTORE_PASSWORD")
+            def ksAlias = System.getenv("KEYSTORE_ALIAS")
+            if (ksBase64 && ksPass && ksAlias) {
+                def ksFile = new File(rootProject.projectDir, ".signing/release.p12")
+                if (!ksFile.exists()) {
+                    ksFile.parentFile.mkdirs()
+                    ksFile.bytes = java.util.Base64.getMimeDecoder().decode(ksBase64)
+                }
+                storeFile ksFile
+                storePassword ksPass
+                keyAlias ksAlias
+                keyPassword ksPass
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (signingConfigs.release.storeFile != null) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
