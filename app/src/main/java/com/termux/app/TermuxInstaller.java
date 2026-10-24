@@ -99,6 +99,184 @@ final class TermuxInstaller {
         }
     }
 
+    static String getTermuxX11ScriptContent() {
+        return "#!/data/data/com.termux/files/usr/bin/bash\n" +
+            "if [ ! -e /system/bin/getprop ] || [ ! -e /system/bin/app_process ]; then\n" +
+            "  echo \"Headless system detected. Termux:X11 requires standard Android to work.\"\n" +
+            "  exit 1\n" +
+            "fi\n" +
+            "if [ \"$(getprop ro.build.version.sdk)\" -lt \"24\" ]; then\n" +
+            "  echo \"Termux:X11 requires at least Android 7 or newer.\"\n" +
+            "  exit 1\n" +
+            "fi\n" +
+            "[ -z \"${LD_LIBRARY_PATH+x}\" ] || export XSTARTUP_LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH\"\n" +
+            "[ -z \"${LD_PRELOAD+x}\" ] || export XSTARTUP_LD_PRELOAD=\"$LD_PRELOAD\"\n" +
+            "[ -z \"${CLASSPATH+x}\" ] || export XSTARTUP_CLASSPATH=\"$CLASSPATH\"\n" +
+            "APK_PATH=\"/data/data/com.termux/files/usr/libexec/termux-x11/base.apk\"\n" +
+            "if [ ! -e \"$APK_PATH\" ]; then\n" +
+            "  APK_PATH=\"$(/system/bin/pm path com.termux 2>/dev/null | head -n 1 | cut -d: -f2)\"\n" +
+            "fi\n" +
+            "export CLASSPATH=\"$APK_PATH\"\n" +
+            "unset LD_LIBRARY_PATH LD_PRELOAD\n" +
+            "[ -n \"$(trap -p USR1)\" ] && export TERMUX_X11_NOTIFY_PARENT=1\n" +
+            "exec /system/bin/app_process -Xnoimage-dex2oat / --nice-name=\"termux-x11 com.termux $*\" com.termux.x11.CmdEntryPoint \"$@\"\n";
+    }
+
+    static String getTermuxX11PreferenceScriptContent() {
+        return "#!/data/data/com.termux/files/usr/bin/bash\n" +
+            "if [ ! -e /system/bin/getprop ] || [ ! -e /system/bin/app_process ]; then\n" +
+            "  echo \"Headless system detected. Termux:X11 requires standard Android to work.\"\n" +
+            "  exit 1\n" +
+            "fi\n" +
+            "if [ \"$(getprop ro.build.version.sdk)\" -lt \"24\" ]; then\n" +
+            "  echo \"Termux:X11 requires at least Android 7 or newer.\"\n" +
+            "  exit 1\n" +
+            "fi\n" +
+            "if [ \"$(getprop ro.build.version.sdk)\" -ge \"34\" ]; then\n" +
+            "  unset LD_LIBRARY_PATH LD_PRELOAD\n" +
+            "  APK_PATH=\"/data/data/com.termux/files/usr/libexec/termux-x11/base.apk\"\n" +
+            "  if [ ! -e \"$APK_PATH\" ]; then\n" +
+            "    APK_PATH=\"$(/system/bin/pm path com.termux 2>/dev/null | head -n 1 | cut -d: -f2)\"\n" +
+            "  fi\n" +
+            "  export CLASSPATH=\"$APK_PATH\"\n" +
+            "  exec /system/bin/app_process -Xnoimage-dex2oat / com.termux.x11.LoriePreferences\\$Receiver \"$@\"\n" +
+            "fi\n\n" +
+            "COMMAND=(\"am\" \"broadcast\" \"-a\" \"com.termux.x11.CHANGE_PREFERENCE\" \"-p\" \"com.termux\")\n" +
+            "help() {\n" +
+            "  echo \"$0 [list] {key:value} [{key2:value2}]...\"\n" +
+            "  exit 1\n" +
+            "}\n\n" +
+            "list() {\n" +
+            "  output=\"$(\"${COMMAND[@]}\" -e list null 2>&1)\"\n" +
+            "  result=$(sed -n '/result=[0-9]*/{s/.*result=\\([0-9]*\\).*/\\1/p;q;}' <<< \"$output\")\n" +
+            "  if [[ \"$result\" == \"0\" ]]; then\n" +
+            "    echo \"Something went wrong.\"\n" +
+            "    exit 1\n" +
+            "  fi\n" +
+            "  if [[ \"$result\" == \"2\" ]] || [[ \"$result\" == \"4\" ]]; then\n" +
+            "    echo \"$(echo \"$output\" | sed -z 's/.*data=\"\\([^\"]*\\)*/\\1/' | sed '${s/\"$//}')\"\n" +
+            "    exit 0\n" +
+            "  fi\n" +
+            "  echo \"list: Unexpected result $result\"\n" +
+            "  echo \"$output\"\n" +
+            "  exit 1\n" +
+            "}\n\n" +
+            "if [ $# -eq 0 ]; then\n" +
+            "  if [ -t 0 ]; then\n" +
+            "    help\n" +
+            "  else\n" +
+            "    OLD_LENGTH=\"${#COMMAND[@]}\"\n" +
+            "    while IFS= read -r line || [[ -n \"$line\" ]]; do\n" +
+            "      [ -z \"$line\" ] && continue\n" +
+            "      key=$(echo \"$line\" | sed -E 's/^\"([^\"]+)\".*/\\1/')\n" +
+            "      value=$(echo \"$line\" | sed -E 's/^\"[^\"]+\"=\"(.*)\"/\\1/')\n" +
+            "      COMMAND+=(\"-e\" \"$key\" \"$value\")\n" +
+            "    done\n" +
+            "    if [[ \"$OLD_LENGTH\" == \"${#COMMAND[@]}\" ]]; then\n" +
+            "      help\n" +
+            "    fi\n" +
+            "  fi\n" +
+            "fi\n\n" +
+            "while [[ $# -gt 0 ]]; do\n" +
+            "  case $1 in\n" +
+            "    list) list;;\n" +
+            "    *:*) COMMAND+=(\"-e\" \"${1%%:*}\" \"${1#*:}\");;\n" +
+            "    *) echo \"Unrecognised option $1\"; help\n" +
+            "  esac\n" +
+            "  shift\n" +
+            "done\n\n" +
+            "output=\"$(\"${COMMAND[@]}\")\"\n" +
+            "result=$(sed -n '/result=[0-9]*/{s/.*result=\\([0-9]*\\).*/\\1/p;q;}' <<< \"$output\")\n" +
+            "if [[ \"$result\" == \"0\" ]]; then\n" +
+            "  echo \"Something went wrong.\"\n" +
+            "  exit 1\n" +
+            "fi\n\n" +
+            "if [[ \"$result\" == \"2\" ]] || [[ \"$result\" == \"4\" ]]; then\n" +
+            "  echo \"$(echo \"$output\" | sed -z 's/.*data=\"\\([^\"]*\\)*/\\1/' | sed '${s/\"$//}')\"\n" +
+            "  exit 0\n" +
+            "fi\n\n" +
+            "echo \"set: Unexpected result $result\"\n" +
+            "echo \"$output\"\n" +
+            "exit 1\n";
+    }
+
+    static void ensureTermuxX11FilesExist(Context context) {
+        try {
+            File binDir = TermuxConstants.TERMUX_BIN_PREFIX_DIR;
+            if (!binDir.exists() || !binDir.isDirectory()) return;
+
+            File x11Script = new File(binDir, "termux-x11");
+            try (FileOutputStream outStream = new FileOutputStream(x11Script)) {
+                outStream.write(getTermuxX11ScriptContent().getBytes(StandardCharsets.UTF_8));
+            }
+            //noinspection OctalInteger
+            Os.chmod(x11Script.getAbsolutePath(), 0700);
+
+            File x11PrefScript = new File(binDir, "termux-x11-preference");
+            try (FileOutputStream outStream = new FileOutputStream(x11PrefScript)) {
+                outStream.write(getTermuxX11PreferenceScriptContent().getBytes(StandardCharsets.UTF_8));
+            }
+            //noinspection OctalInteger
+            Os.chmod(x11PrefScript.getAbsolutePath(), 0700);
+
+            if (context != null && context.getApplicationInfo() != null) {
+                File libexecDir = new File(TERMUX_PREFIX_DIR, "libexec/termux-x11");
+                if (!libexecDir.exists()) {
+                    //noinspection ResultOfMethodCallIgnored
+                    libexecDir.mkdirs();
+                }
+
+                File apkSymlink = new File(libexecDir, "base.apk");
+                //noinspection ResultOfMethodCallIgnored
+                apkSymlink.delete();
+                if (context.getApplicationInfo().sourceDir != null) {
+                    Os.symlink(context.getApplicationInfo().sourceDir, apkSymlink.getAbsolutePath());
+                }
+
+                File libSymlink = new File(libexecDir, "libXlorie.so");
+                //noinspection ResultOfMethodCallIgnored
+                libSymlink.delete();
+                if (context.getApplicationInfo().nativeLibraryDir != null) {
+                    Os.symlink(context.getApplicationInfo().nativeLibraryDir + "/libXlorie.so", libSymlink.getAbsolutePath());
+                }
+
+                File xkbDir = new File(TERMUX_PREFIX_DIR, "share/xkeyboard-config-2");
+                File xkbLegacyDir = new File(TERMUX_PREFIX_DIR, "share/X11/xkb");
+                if (!xkbDir.exists() && !xkbLegacyDir.exists() && context.getAssets() != null) {
+                    try (ZipInputStream zis = new ZipInputStream(context.getAssets().open("xkb.zip"))) {
+                        byte[] buf = new byte[8192];
+                        ZipEntry entry;
+                        String canonicalPrefix = TERMUX_PREFIX_DIR.getCanonicalPath();
+                        while ((entry = zis.getNextEntry()) != null) {
+                            File outFile = new File(TERMUX_PREFIX_DIR, entry.getName());
+                            if (!outFile.getCanonicalPath().startsWith(canonicalPrefix + File.separator)) {
+                                continue;
+                            }
+                            if (entry.isDirectory()) {
+                                //noinspection ResultOfMethodCallIgnored
+                                outFile.mkdirs();
+                            } else {
+                                File parent = outFile.getParentFile();
+                                if (parent != null && !parent.exists()) {
+                                    //noinspection ResultOfMethodCallIgnored
+                                    parent.mkdirs();
+                                }
+                                try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                                    int len;
+                                    while ((len = zis.read(buf)) != -1) {
+                                        fos.write(buf, 0, len);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
     static void setupBootstrapIfNeeded(final Activity activity, final Runnable whenDone) {
         String bootstrapErrorMessage;
         Error filesDirectoryAccessibleError;
@@ -151,6 +329,7 @@ final class TermuxInstaller {
                 Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" exists but is empty or only contains specific unimportant files.");
             } else {
                 ensureSetupMicrophoneScriptExists();
+                ensureTermuxX11FilesExist(activity);
                 whenDone.run();
                 return;
             }
@@ -299,6 +478,9 @@ final class TermuxInstaller {
                     }
 
                     Logger.logInfo(LOG_TAG, "Bootstrap packages installed successfully.");
+
+                    ensureSetupMicrophoneScriptExists();
+                    ensureTermuxX11FilesExist(activity);
 
                     // Recreate env file since termux prefix was wiped earlier
                     TermuxShellEnvironment.writeEnvironmentToFile(activity);

@@ -21,4 +21,21 @@ public class TermuxX11IntegrationTest {
         );
         assertEquals(tempLib.getAbsolutePath(), resolved);
     }
+
+    @Test
+    public void testTermuxX11ScriptDoesNotRequireLoaderApkAndUsesCmdEntryPoint() {
+        String script = TermuxInstaller.getTermuxX11ScriptContent();
+        assertFalse(script.contains("loader.apk"));
+        assertTrue(script.contains("com.termux.x11.CmdEntryPoint"));
+        assertTrue(script.contains("/data/data/com.termux/files/usr/libexec/termux-x11/base.apk"));
+        assertTrue(script.contains("pm path com.termux"));
+    }
+
+    @Test
+    public void testTermuxX11PreferenceScriptUsesDirectReceiverMain() {
+        String script = TermuxInstaller.getTermuxX11PreferenceScriptContent();
+        assertFalse(script.contains("loader.apk"));
+        assertTrue(script.contains("com.termux.x11.LoriePreferences\\$Receiver"));
+        assertTrue(script.contains("-p\" \"com.termux\""));
+    }
 }

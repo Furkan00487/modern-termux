@@ -173,6 +173,8 @@ def patchBootstrapMotd(File zipFile) {
     Enumeration<? extends java.util.zip.ZipEntry> entries = zf.entries()
     byte[] buf = new byte[8192]
     boolean hasSetupMicrophone = false
+    boolean hasTermuxX11 = false
+    boolean hasTermuxX11Pref = false
     String trSetupMicrophone = "#!/data/data/com.termux/files/usr/bin/bash\n\n" +
                                "if [ \"\$#\" != \"0\" ]; then\n" +
                                "\techo 'kullanım: termux-setup-microphone'\n" +
@@ -183,6 +185,55 @@ def patchBootstrapMotd(File zipFile) {
                                "am broadcast --user \"\$TERMUX__USER_ID\" \\\n" +
                                "\t-a \"com.termux.app.request_microphone_permission\" \\\n" +
                                "\t \"com.termux\" > /dev/null\n"
+    String termuxX11Script = "#!/data/data/com.termux/files/usr/bin/bash\n" +
+                             "if [ ! -e /system/bin/getprop ] || [ ! -e /system/bin/app_process ]; then\n" +
+                             "  echo \"Headless system detected. Termux:X11 requires standard Android to work.\"\n" +
+                             "  exit 1\n" +
+                             "fi\n" +
+                             "if [ \"\$(getprop ro.build.version.sdk)\" -lt \"24\" ]; then\n" +
+                             "  echo \"Termux:X11 requires at least Android 7 or newer.\"\n" +
+                             "  exit 1\n" +
+                             "fi\n" +
+                             "[ -z \"\${LD_LIBRARY_PATH+x}\" ] || export XSTARTUP_LD_LIBRARY_PATH=\"\$LD_LIBRARY_PATH\"\n" +
+                             "[ -z \"\${LD_PRELOAD+x}\" ] || export XSTARTUP_LD_PRELOAD=\"\$LD_PRELOAD\"\n" +
+                             "[ -z \"\${CLASSPATH+x}\" ] || export XSTARTUP_CLASSPATH=\"\$CLASSPATH\"\n" +
+                             "APK_PATH=\"/data/data/com.termux/files/usr/libexec/termux-x11/base.apk\"\n" +
+                             "if [ ! -e \"\$APK_PATH\" ]; then\n" +
+                             "  APK_PATH=\"\$(/system/bin/pm path com.termux 2>/dev/null | head -n 1 | cut -d: -f2)\"\n" +
+                             "fi\n" +
+                             "export CLASSPATH=\"\$APK_PATH\"\n" +
+                             "unset LD_LIBRARY_PATH LD_PRELOAD\n" +
+                             "[ -n \"\$(trap -p USR1)\" ] && export TERMUX_X11_NOTIFY_PARENT=1\n" +
+                             "exec /system/bin/app_process -Xnoimage-dex2oat / --nice-name=\"termux-x11 com.termux \$*\" com.termux.x11.CmdEntryPoint \"\$@\"\n"
+    String termuxX11PrefScript = "#!/data/data/com.termux/files/usr/bin/bash\n" +
+                                 "if [ ! -e /system/bin/getprop ] || [ ! -e /system/bin/app_process ]; then\n" +
+                                 "  echo \"Headless system detected. Termux:X11 requires standard Android to work.\"\n" +
+                                 "  exit 1\n" +
+                                 "fi\n" +
+                                 "if [ \"\$(getprop ro.build.version.sdk)\" -lt \"24\" ]; then\n" +
+                                 "  echo \"Termux:X11 requires at least Android 7 or newer.\"\n" +
+                                 "  exit 1\n" +
+                                 "fi\n" +
+                                 "if [ \"\$(getprop ro.build.version.sdk)\" -ge \"34\" ]; then\n" +
+                                 "  unset LD_LIBRARY_PATH LD_PRELOAD\n" +
+                                 "  APK_PATH=\"/data/data/com.termux/files/usr/libexec/termux-x11/base.apk\"\n" +
+                                 "  if [ ! -e \"\$APK_PATH\" ]; then\n" +
+                                 "    APK_PATH=\"\$(/system/bin/pm path com.termux 2>/dev/null | head -n 1 | cut -d: -f2)\"\n" +
+                                 "  fi\n" +
+                                 "  export CLASSPATH=\"\$APK_PATH\"\n" +
+                                 "  exec /system/bin/app_process -Xnoimage-dex2oat / com.termux.x11.LoriePreferences\\\$Receiver \"\$@\"\n" +
+                                 "fi\n\n" +
+                                 "COMMAND=(\"am\" \"broadcast\" \"-a\" \"com.termux.x11.CHANGE_PREFERENCE\" \"-p\" \"com.termux\")\n" +
+                                 "help() {\n  echo \"\$0 [list] {key:value} [{key2:value2}]...\"\n  exit 1\n}\n" +
+                                 "if [ \$# -eq 0 ]; then help; fi\n" +
+                                 "if [ \"\$1\" = \"list\" ]; then\n" +
+                                 "  \"\${COMMAND[@]}\" -e list null\n" +
+                                 "  exit \$?\n" +
+                                 "fi\n" +
+                                 "for arg in \"\$@\"; do\n" +
+                                 "  COMMAND+=(\"-e\" \"\${arg%%:*}\" \"\${arg#*:}\")\n" +
+                                 "done\n" +
+                                 "\"\${COMMAND[@]}\"\n"
     while (entries.hasMoreElements()) {
         java.util.zip.ZipEntry entry = entries.nextElement()
         InputStream is = zf.getInputStream(entry)
@@ -234,6 +285,12 @@ def patchBootstrapMotd(File zipFile) {
         } else if (!entry.isDirectory() && entry.name.endsWith("bin/termux-setup-microphone")) {
             hasSetupMicrophone = true
             data = trSetupMicrophone.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        } else if (!entry.isDirectory() && entry.name.endsWith("bin/termux-x11")) {
+            hasTermuxX11 = true
+            data = termuxX11Script.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        } else if (!entry.isDirectory() && entry.name.endsWith("bin/termux-x11-preference")) {
+            hasTermuxX11Pref = true
+            data = termuxX11PrefScript.getBytes(java.nio.charset.StandardCharsets.UTF_8)
         }
 
         java.util.zip.ZipEntry newEntry = new java.util.zip.ZipEntry(entry.name)
@@ -248,19 +305,79 @@ def patchBootstrapMotd(File zipFile) {
         zos.write(trSetupMicrophone.getBytes(java.nio.charset.StandardCharsets.UTF_8))
         zos.closeEntry()
     }
+    if (!hasTermuxX11) {
+        java.util.zip.ZipEntry x11Entry = new java.util.zip.ZipEntry("bin/termux-x11")
+        zos.putNextEntry(x11Entry)
+        zos.write(termuxX11Script.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+        zos.closeEntry()
+    }
+    if (!hasTermuxX11Pref) {
+        java.util.zip.ZipEntry x11PrefEntry = new java.util.zip.ZipEntry("bin/termux-x11-preference")
+        zos.putNextEntry(x11PrefEntry)
+        zos.write(termuxX11PrefScript.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+        zos.closeEntry()
+    }
+
+    // Download and bundle xkeyboard-config (share/xkeyboard-config-2) so X11 works offline without external packages
+    File xkbDebFile = new File(projectDir, "src/main/cpp/xkeyboard-config_2.49_all.deb")
+    if (!xkbDebFile.exists()) {
+        String xkbUrl = "https://packages-cf.termux.dev/apt/termux-main/pool/main/x/xkeyboard-config/xkeyboard-config_2.49_all.deb"
+        logger.quiet("Downloading " + xkbUrl + " ...")
+        xkbDebFile.parentFile.mkdirs()
+        new URL(xkbUrl).withInputStream { i -> xkbDebFile.withOutputStream { it << i } }
+    }
+    File assetsDir = new File(projectDir, "src/main/assets")
+    assetsDir.mkdirs()
+    File xkbAssetZip = new File(assetsDir, "xkb.zip")
+    java.util.zip.ZipOutputStream xkbAssetZos = new java.util.zip.ZipOutputStream(new BufferedOutputStream(new FileOutputStream(xkbAssetZip)))
+    def arIn = new org.apache.commons.compress.archivers.ar.ArArchiveInputStream(new BufferedInputStream(new FileInputStream(xkbDebFile)))
+    def arEntry
+    while ((arEntry = arIn.nextEntry) != null) {
+        if (arEntry.name == "data.tar.xz") {
+            def xzIn = new org.apache.commons.compress.compressors.xz.XZCompressorInputStream(arIn)
+            def tarIn = new org.apache.commons.compress.archivers.tar.TarArchiveInputStream(xzIn)
+            def tarEntry
+            String prefixToStrip = "./data/data/com.termux/files/usr/"
+            while ((tarEntry = tarIn.nextEntry) != null) {
+                if (!tarEntry.isDirectory() && tarEntry.name.startsWith(prefixToStrip + "share/")) {
+                    String relName = tarEntry.name.substring(prefixToStrip.length())
+                    ByteArrayOutputStream tbaos = new ByteArrayOutputStream()
+                    int tn
+                    while ((tn = tarIn.read(buf)) != -1) {
+                        tbaos.write(buf, 0, tn)
+                    }
+                    byte[] tbytes = tbaos.toByteArray()
+
+                    java.util.zip.ZipEntry ze1 = new java.util.zip.ZipEntry(relName)
+                    zos.putNextEntry(ze1)
+                    zos.write(tbytes)
+                    zos.closeEntry()
+
+                    java.util.zip.ZipEntry ze2 = new java.util.zip.ZipEntry(relName)
+                    xkbAssetZos.putNextEntry(ze2)
+                    xkbAssetZos.write(tbytes)
+                    xkbAssetZos.closeEntry()
+                }
+            }
+            break
+        }
+    }
+    arIn.close()
+    xkbAssetZos.close()
+
     zos.close()
     zf.close()
     zipFile.delete()
     if (!tempFile.renameTo(zipFile)) {
         throw new GradleException("Failed to rename patched bootstrap zip file")
     }
-    logger.quiet("Patched bootstrap zip (" + zipFile.name + ") with custom Turkish MOTD banner, termux-setup-storage and termux-setup-microphone")
+    logger.quiet("Patched bootstrap zip (" + zipFile.name + ") with custom Turkish MOTD banner, termux-setup-storage, termux-setup-microphone, termux-x11 and xkeyboard-config")
 }
 
 def downloadBootstrap(String arch, String expectedChecksum, String version) {
     def localUrl = "src/main/cpp/bootstrap-" + arch + ".zip"
     def file = new File(projectDir, localUrl)
-    def patchedMarker = new File(projectDir, "src/main/cpp/bootstrap-" + arch + ".patched2")
+    def patchedMarker = new File(projectDir, "src/main/cpp/bootstrap-" + arch + ".patched3")
     if (file.exists() && patchedMarker.exists()) {
         return
     }
