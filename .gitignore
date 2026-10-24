@@ -49,3 +49,4 @@ Thumbs.db
 # Superpowers artifacts
 docs/superpowers/
 .superpowers/
+.worktrees/
