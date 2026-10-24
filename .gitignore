@@ -45,3 +45,7 @@ local.properties
 .swp
 ehthumbs.db
 Thumbs.db
+
+# Superpowers artifacts
+docs/superpowers/
+.superpowers/
