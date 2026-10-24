@@ -570,6 +570,19 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         settingsButton.setOnClickListener(v -> {
             ActivityUtils.startActivity(this, new Intent(this, SettingsActivity.class));
         });
+
+        View x11Button = findViewById(R.id.x11_button);
+        if (x11Button != null) {
+            x11Button.setOnClickListener(v -> {
+                getDrawer().closeDrawers();
+                ActivityUtils.startActivity(this, new Intent(this, com.termux.x11.MainActivity.class));
+            });
+            x11Button.setOnLongClickListener(v -> {
+                getDrawer().closeDrawers();
+                ActivityUtils.startActivity(this, new Intent(this, com.termux.x11.LoriePreferences.class));
+                return true;
+            });
+        }
     }
 
     private void setNewSessionButtonView() {

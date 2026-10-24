@@ -38,4 +38,9 @@ public class TermuxX11IntegrationTest {
         assertTrue(script.contains("com.termux.x11.LoriePreferences\\$Receiver"));
         assertTrue(script.contains("-p\" \"com.termux\""));
     }
+
+    @Test
+    public void testTermuxApplicationExtendsLorieApp() {
+        assertTrue(LorieApp.class.isAssignableFrom(TermuxApplication.class));
+    }
 }

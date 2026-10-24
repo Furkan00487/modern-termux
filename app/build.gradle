@@ -42,6 +42,7 @@ android {
 
         implementation project(":terminal-view")
         implementation project(":termux-shared")
+        implementation project(":x11")
     }
 
     defaultConfig {
