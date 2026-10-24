@@ -224,7 +224,7 @@ public class CmdEntryPoint extends ICmdEntryInterface.Stub {
                 System.load(libPath);
             } catch (Exception e) {
                 Log.e("CmdEntryPoint", "Failed to dlopen " + libPath, e);
-                System.err.println("Failed to load native library. Did you install the right apk? Try the universal one.");
+                System.err.println("Yerel kütüphane yüklenemedi. Doğru APK'yı kurdunuz mu? Evrensel (universal) sürümü deneyin.");
                 System.exit(134);
             }
         }

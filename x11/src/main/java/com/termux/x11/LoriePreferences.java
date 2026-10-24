@@ -320,9 +320,9 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
             setVisible("stylusIsMouse", stylusAvailable);
             setVisible("stylusButtonContactModifierMode", stylusAvailable);
 
-            setNoActionOptionText(findPreference("volumeDownAction"), "android volume control");
-            setNoActionOptionText(findPreference("volumeUpAction"), "android volume control");
-            setNoActionOptionText(findPreference("mediaKeysAction"), "android media control");
+            setNoActionOptionText(findPreference("volumeDownAction"), "Android ses kontrolü");
+            setNoActionOptionText(findPreference("volumeUpAction"), "Android ses kontrolü");
+            setNoActionOptionText(findPreference("mediaKeysAction"), "Android medya kontrolü");
         }
 
         private void setSummary(CharSequence key, int disabled) {
@@ -387,7 +387,7 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
         }
 
         private static String formatTimeout(long timeoutMs) {
-            return timeoutMs < 60_000 ? (timeoutMs / 1_000) + " sec" : (timeoutMs / 60_000) + " min";
+            return timeoutMs < 60_000 ? (timeoutMs / 1_000) + " sn" : (timeoutMs / 60_000) + " dk";
         }
 
         /** Replaces the "System" entry text with the actual system screen-off timeout it defers to. */
@@ -397,7 +397,7 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
             ListPreference p = (ListPreference) preference;
             CharSequence[] options = p.getEntries();
             for (int i=0; i<options.length; i++) {
-                if ("System".contentEquals(options[i]))
+                if ("System".contentEquals(options[i]) || "Sistem".contentEquals(options[i]))
                     options[i] = getString(R.string.lorie_pref_screenIdleTimeoutSystem, text);
             }
         }
@@ -438,8 +438,8 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
             ListPreference p = (ListPreference) preference;
             CharSequence[] options = p.getEntries();
             for (int i=0; i<options.length; i++) {
-                if ("no action".contentEquals(options[i]))
-                    options[i] = "no action (" + text + ")";
+                if ("no action".contentEquals(options[i]) || "İşlem yok".contentEquals(options[i]))
+                    options[i] = "İşlem yok (" + text + ")";
             }
         }
 
@@ -460,7 +460,7 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                 if (ctx != null) {
                     ((ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE))
                             .setPrimaryClip(ClipData.newPlainText(p.getSummary(), p.getSummary()));
-                    Toast.makeText(ctx, "Copied to clipboard", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ctx, "Panoya kopyalandı", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -499,7 +499,7 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                     if (width <= 0 || height <= 0)
                         throw new NumberFormatException();
                 } catch (NumberFormatException | PatternSyntaxException ignored) {
-                    Toast.makeText(getActivity(), "Wrong resolution format", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Geçersiz çözünürlük biçimi", Toast.LENGTH_SHORT).show();
                     return false;
                 }
             }
@@ -512,11 +512,11 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                     KeyInterceptor.shutdown(false);
                 if (requireContext().checkSelfPermission(WRITE_SECURE_SETTINGS) != PERMISSION_GRANTED) {
                     new AlertDialog.Builder(requireContext())
-                            .setTitle("Permission denied")
-                            .setMessage("Android requires WRITE_SECURE_SETTINGS permission to start accessibility service automatically.\n" +
-                                    "Please, launch this command using ADB:\n" +
+                            .setTitle("İzin reddedildi")
+                            .setMessage("Erişilebilirlik servisini otomatik başlatmak için Android WRITE_SECURE_SETTINGS iznine ihtiyaç duyar.\n" +
+                                    "Lütfen ADB kullanarak şu komutu çalıştırın:\n" +
                                     "adb shell pm grant " + requireContext().getPackageName() + " android.permission.WRITE_SECURE_SETTINGS")
-                            .setNegativeButton("OK", null)
+                            .setNegativeButton("Tamam", null)
                             .create()
                             .show();
                     return false;
@@ -546,16 +546,16 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                 desc.setMovementMethod(LinkMovementMethod.getInstance());
                 new android.app.AlertDialog.Builder(getActivity())
                         .setView(view)
-                        .setTitle("Extra keys config")
-                        .setPositiveButton("OK",
+                        .setTitle("Ek tuş yapılandırması")
+                        .setPositiveButton("Tamam",
                                 (dialog, whichButton) -> {
                                     String text = config.getText().toString();
                                     prefs().extra_keys_config.put(!text.isEmpty() ? text : TermuxX11ExtraKeys.DEFAULT_IVALUE_EXTRA_KEYS);
                                 }
                         )
-                        .setNeutralButton("Reset",
+                        .setNeutralButton("Sıfırla",
                                 (dialog, whichButton) -> prefs().extra_keys_config.put(TermuxX11ExtraKeys.DEFAULT_IVALUE_EXTRA_KEYS))
-                        .setNegativeButton("Cancel", (dialog, whichButton) -> dialog.dismiss())
+                        .setNegativeButton("İptal", (dialog, whichButton) -> dialog.dismiss())
                         .create()
                         .show();
             } else super.onDisplayPreferenceDialog(preference);
@@ -594,8 +594,8 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                             else if (pref.type == boolean.class)
                                 result += "\"" + pref.key + "\"=\"" + pref.asBoolean().get() + "\"\n";
                             else if (pref.type == String[].class) {
-                                String[] entries = context.getResources().getStringArray(pref.asList().entries);
-                                String[] values = context.getResources().getStringArray(pref.asList().values);
+                                String[] entries = pref.asList().getEntries();
+                                String[] values = pref.asList().getValues();
                                 String value = pref.asList().get();
                                 int index = Arrays.asList(values).indexOf(value);
                                 if (index != -1)
@@ -625,7 +625,7 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                                     if (width <= 0 || height <= 0)
                                         throw new NumberFormatException();
                                 } catch (NumberFormatException | PatternSyntaxException ignored) {
-                                    sendResponse(remote, 1, 1, "displayResolutionCustom: Wrong resolution format.");
+                                    sendResponse(remote, 1, 1, "displayResolutionCustom: Geçersiz çözünürlük biçimi.");
                                     return;
                                 }
 
@@ -636,10 +636,10 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                                 if (!"true".equals(newValue))
                                     KeyInterceptor.shutdown(false);
                                 else if (context.checkSelfPermission(WRITE_SECURE_SETTINGS) != PERMISSION_GRANTED) {
-                                    sendResponse(remote, 1, 1, "Permission denied.\n" +
-                                            "Android requires WRITE_SECURE_SETTINGS permission to change `enableAccessibilityServiceAutomatically` setting.\n" +
-                                            "Please, launch this command using ADB:\n" +
-                                            "adb shell pm grant com.termux.x11 android.permission.WRITE_SECURE_SETTINGS");
+                                    sendResponse(remote, 1, 1, "İzin reddedildi.\n" +
+                                            "`enableAccessibilityServiceAutomatically` ayarını değiştirmek için Android WRITE_SECURE_SETTINGS iznine ihtiyaç duyar.\n" +
+                                            "Lütfen ADB kullanarak şu komutu çalıştırın:\n" +
+                                            "adb shell pm grant " + context.getPackageName() + " android.permission.WRITE_SECURE_SETTINGS");
                                     return;
                                 }
 
@@ -666,7 +666,7 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                                     try {
                                         edit.putInt(key, Integer.parseInt(newValue));
                                     } catch (NumberFormatException | PatternSyntaxException exception) {
-                                        sendResponse(remote, 1, 4, key + ": failed to parse integer: " + exception);
+                                        sendResponse(remote, 1, 4, key + ": tam sayı ayrıştırılamadı: " + exception);
                                         return;
                                     }
                                 } else if (pref != null && pref.type == String[].class) {
@@ -683,10 +683,10 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                                         break;
                                     }
 
-                                    sendResponse(remote, 1, 1, key + ": can not be set to \"" + newValue + "\", possible options are " + Arrays.toString(entries) + (_p.entries != _p.values ? " or " + Arrays.toString(values) : ""));
+                                    sendResponse(remote, 1, 1, key + ": \"" + newValue + "\" olarak ayarlanamaz, olası seçenekler: " + Arrays.toString(entries) + (_p.entries != _p.values ? " veya " + Arrays.toString(values) : ""));
                                     return;
                                 } else {
-                                    sendResponse(remote, 1, 4, key + ": unrecognised option");
+                                    sendResponse(remote, 1, 4, key + ": tanınmayan seçenek");
                                     return;
                                 }
                             }
@@ -701,7 +701,7 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                     edit.commit();
                 }
 
-                sendResponse(remote, 0, 2, "Done");
+                sendResponse(remote, 0, 2, "Tamamlandı");
             } catch (Exception e) {
                 sendResponse(remote, 1, 4, e.toString());
             }
@@ -781,7 +781,7 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
 
             CmdEntryPoint.handler.post(() -> CmdEntryPoint.sendBroadcast(i));
             CmdEntryPoint.handler.postDelayed(() -> {
-                System.err.println("Failed to obtain response from app.");
+                System.err.println("Uygulamadan yanıt alınamadı.");
                 System.exit(1);
             }, 5000);
             Looper.loop();

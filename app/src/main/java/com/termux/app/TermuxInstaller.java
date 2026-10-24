@@ -102,11 +102,11 @@ final class TermuxInstaller {
     static String getTermuxX11ScriptContent() {
         return "#!/data/data/com.termux/files/usr/bin/bash\n" +
             "if [ ! -e /system/bin/getprop ] || [ ! -e /system/bin/app_process ]; then\n" +
-            "  echo \"Headless system detected. Termux:X11 requires standard Android to work.\"\n" +
+            "  echo \"Başsız (headless) sistem algılandı. Termux:X11 çalışmak için standart Android gerektirir.\"\n" +
             "  exit 1\n" +
             "fi\n" +
             "if [ \"$(getprop ro.build.version.sdk)\" -lt \"24\" ]; then\n" +
-            "  echo \"Termux:X11 requires at least Android 7 or newer.\"\n" +
+            "  echo \"Termux:X11 en az Android 7 veya daha yeni bir sürüm gerektirir.\"\n" +
             "  exit 1\n" +
             "fi\n" +
             "[ -z \"${LD_LIBRARY_PATH+x}\" ] || export XSTARTUP_LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH\"\n" +
@@ -125,11 +125,11 @@ final class TermuxInstaller {
     static String getTermuxX11PreferenceScriptContent() {
         return "#!/data/data/com.termux/files/usr/bin/bash\n" +
             "if [ ! -e /system/bin/getprop ] || [ ! -e /system/bin/app_process ]; then\n" +
-            "  echo \"Headless system detected. Termux:X11 requires standard Android to work.\"\n" +
+            "  echo \"Başsız (headless) sistem algılandı. Termux:X11 çalışmak için standart Android gerektirir.\"\n" +
             "  exit 1\n" +
             "fi\n" +
             "if [ \"$(getprop ro.build.version.sdk)\" -lt \"24\" ]; then\n" +
-            "  echo \"Termux:X11 requires at least Android 7 or newer.\"\n" +
+            "  echo \"Termux:X11 en az Android 7 veya daha yeni bir sürüm gerektirir.\"\n" +
             "  exit 1\n" +
             "fi\n" +
             "if [ \"$(getprop ro.build.version.sdk)\" -ge \"34\" ]; then\n" +
@@ -150,14 +150,14 @@ final class TermuxInstaller {
             "  output=\"$(\"${COMMAND[@]}\" -e list null 2>&1)\"\n" +
             "  result=$(sed -n '/result=[0-9]*/{s/.*result=\\([0-9]*\\).*/\\1/p;q;}' <<< \"$output\")\n" +
             "  if [[ \"$result\" == \"0\" ]]; then\n" +
-            "    echo \"Something went wrong.\"\n" +
+            "    echo \"Bir şeyler ters gitti.\"\n" +
             "    exit 1\n" +
             "  fi\n" +
             "  if [[ \"$result\" == \"2\" ]] || [[ \"$result\" == \"4\" ]]; then\n" +
             "    echo \"$(echo \"$output\" | sed -z 's/.*data=\"\\([^\"]*\\)*/\\1/' | sed '${s/\"$//}')\"\n" +
             "    exit 0\n" +
             "  fi\n" +
-            "  echo \"list: Unexpected result $result\"\n" +
+            "  echo \"list: Beklenmeyen sonuç $result\"\n" +
             "  echo \"$output\"\n" +
             "  exit 1\n" +
             "}\n\n" +
@@ -181,21 +181,21 @@ final class TermuxInstaller {
             "  case $1 in\n" +
             "    list) list;;\n" +
             "    *:*) COMMAND+=(\"-e\" \"${1%%:*}\" \"${1#*:}\");;\n" +
-            "    *) echo \"Unrecognised option $1\"; help\n" +
+            "    *) echo \"Tanınmayan seçenek $1\"; help\n" +
             "  esac\n" +
             "  shift\n" +
             "done\n\n" +
             "output=\"$(\"${COMMAND[@]}\")\"\n" +
             "result=$(sed -n '/result=[0-9]*/{s/.*result=\\([0-9]*\\).*/\\1/p;q;}' <<< \"$output\")\n" +
             "if [[ \"$result\" == \"0\" ]]; then\n" +
-            "  echo \"Something went wrong.\"\n" +
+            "  echo \"Bir şeyler ters gitti.\"\n" +
             "  exit 1\n" +
             "fi\n\n" +
             "if [[ \"$result\" == \"2\" ]] || [[ \"$result\" == \"4\" ]]; then\n" +
             "  echo \"$(echo \"$output\" | sed -z 's/.*data=\"\\([^\"]*\\)*/\\1/' | sed '${s/\"$//}')\"\n" +
             "  exit 0\n" +
             "fi\n\n" +
-            "echo \"set: Unexpected result $result\"\n" +
+            "echo \"set: Beklenmeyen sonuç $result\"\n" +
             "echo \"$output\"\n" +
             "exit 1\n";
     }
