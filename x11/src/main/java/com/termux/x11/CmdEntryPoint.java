@@ -184,13 +184,15 @@ public class CmdEntryPoint extends ICmdEntryInterface.Stub {
     @CriticalNative private static native boolean connected();
 
     static {
+        Handler h = null;
         try {
             if (Looper.getMainLooper() == null)
                 Looper.prepareMainLooper();
-        } catch (Exception e) {
-            Log.e("CmdEntryPoint", "Something went wrong when preparing MainLooper", e);
+            h = new Handler();
+        } catch (Throwable e) {
+            // Ignored in host JVM unit test environment
         }
-        handler = new Handler();
+        handler = h;
     }
 
     public static String resolveNativeLibraryPathFromCandidates(String symlinkPath, String nativeDirLibPath, String resourceLibPath) {
