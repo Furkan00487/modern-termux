@@ -1,30 +1,7 @@
 {
   "name": "modern-termux",
-  "image": "mcr.microsoft.com/devcontainers/java:1-17-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
   "features": {
     "ghcr.io/devcontainers/features/sshd:1": {}
-  },
-  "containerEnv": {
-    "ANDROID_HOME": "/usr/local/android-sdk",
-    "ANDROID_SDK_ROOT": "/usr/local/android-sdk"
-  },
-  "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/usr/local/android-sdk/cmdline-tools/latest/bin:/usr/local/android-sdk/platform-tools"
-  },
-  "postCreateCommand": "bash .devcontainer/setup.sh",
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "vscjava.vscode-java-pack",
-        "vscjava.vscode-gradle",
-        "redhat.vscode-xml",
-        "ms-vscode.cpptools",
-        "ms-vscode.cmake-tools",
-        "mathiasfrohlich.Kotlin",
-        "EditorConfig.EditorConfig",
-        "eamodio.gitlens",
-        "GitHub.vscode-github-actions"
-      ]
-    }
   }
 }
