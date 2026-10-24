@@ -329,21 +329,24 @@ def patchBootstrapMotd(File zipFile) {
         assetsDir.mkdirs()
         File xkbAssetZip = new File(assetsDir, "xkb.zip")
         java.util.zip.ZipOutputStream xkbAssetZos = new java.util.zip.ZipOutputStream(new BufferedOutputStream(new FileOutputStream(xkbAssetZip)))
-        String basePath = hostXkbDir.canonicalPath
+        String basePath = hostXkbDir.absolutePath
+        Set<String> seenXkbEntries = new HashSet<>()
         hostXkbDir.eachFileRecurse(groovy.io.FileType.FILES) { File f ->
-            String relSubPath = f.canonicalPath.substring(basePath.length() + 1).replace('\\', '/')
+            String relSubPath = f.absolutePath.substring(basePath.length() + 1).replace('\\', '/')
             String zipEntryPath = "share/X11/xkb/" + relSubPath
-            byte[] fbytes = f.bytes
+            if (seenXkbEntries.add(zipEntryPath)) {
+                byte[] fbytes = f.bytes
 
-            java.util.zip.ZipEntry ze1 = new java.util.zip.ZipEntry(zipEntryPath)
-            zos.putNextEntry(ze1)
-            zos.write(fbytes)
-            zos.closeEntry()
+                java.util.zip.ZipEntry ze1 = new java.util.zip.ZipEntry(zipEntryPath)
+                zos.putNextEntry(ze1)
+                zos.write(fbytes)
+                zos.closeEntry()
 
-            java.util.zip.ZipEntry ze2 = new java.util.zip.ZipEntry(zipEntryPath)
-            xkbAssetZos.putNextEntry(ze2)
-            xkbAssetZos.write(fbytes)
-            xkbAssetZos.closeEntry()
+                java.util.zip.ZipEntry ze2 = new java.util.zip.ZipEntry(zipEntryPath)
+                xkbAssetZos.putNextEntry(ze2)
+                xkbAssetZos.write(fbytes)
+                xkbAssetZos.closeEntry()
+            }
         }
         xkbAssetZos.close()
     } else {
