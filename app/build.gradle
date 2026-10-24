@@ -320,12 +320,32 @@ def patchBootstrapMotd(File zipFile) {
     }
 
     // Download and bundle xkeyboard-config (share/xkeyboard-config-2) so X11 works offline without external packages
-    File xkbDebFile = new File(projectDir, "src/main/cpp/xkeyboard-config_2.49_all.deb")
+    File xkbDebFile = new File(projectDir, "src/main/cpp/xkeyboard-config_all.deb")
     if (!xkbDebFile.exists()) {
-        String xkbUrl = "https://packages-cf.termux.dev/apt/termux-main/pool/main/x/xkeyboard-config/xkeyboard-config_2.49_all.deb"
+        String repoBase = "https://packages.termux.dev/apt/termux-main"
+        URL pkgIndexUrl = new URL(repoBase + "/dists/stable/main/binary-all/Packages")
+        def pkgConn = pkgIndexUrl.openConnection()
+        pkgConn.setRequestProperty("User-Agent", "curl/8.0")
+        String pkgIndexText = pkgConn.inputStream.getText("UTF-8")
+        String xkbRelPath = null
+        boolean inXkb = false
+        for (String line : pkgIndexText.split("\n")) {
+            if (line.startsWith("Package: ")) {
+                inXkb = (line.trim() == "Package: xkeyboard-config")
+            } else if (inXkb && line.startsWith("Filename: ")) {
+                xkbRelPath = line.substring("Filename: ".length()).trim()
+                break
+            }
+        }
+        if (!xkbRelPath) {
+            throw new GradleException("Could not find xkeyboard-config in Termux Packages index")
+        }
+        String xkbUrl = repoBase + "/" + xkbRelPath
         logger.quiet("Downloading " + xkbUrl + " ...")
         xkbDebFile.parentFile.mkdirs()
-        new URL(xkbUrl).withInputStream { i -> xkbDebFile.withOutputStream { it << i } }
+        def debConn = new URL(xkbUrl).openConnection()
+        debConn.setRequestProperty("User-Agent", "curl/8.0")
+        debConn.inputStream.withStream { i -> xkbDebFile.withOutputStream { it << i } }
     }
     File assetsDir = new File(projectDir, "src/main/assets")
     assetsDir.mkdirs()
@@ -338,10 +358,11 @@ def patchBootstrapMotd(File zipFile) {
             def xzIn = new org.apache.commons.compress.compressors.xz.XZCompressorInputStream(arIn)
             def tarIn = new org.apache.commons.compress.archivers.tar.TarArchiveInputStream(xzIn)
             def tarEntry
-            String prefixToStrip = "./data/data/com.termux/files/usr/"
+            String prefixToStrip = "data/data/com.termux/files/usr/"
             while ((tarEntry = tarIn.nextEntry) != null) {
-                if (!tarEntry.isDirectory() && tarEntry.name.startsWith(prefixToStrip + "share/")) {
-                    String relName = tarEntry.name.substring(prefixToStrip.length())
+                String cleanName = tarEntry.name.replaceFirst("^\\./", "")
+                if (!tarEntry.isDirectory() && !tarEntry.isSymbolicLink() && cleanName.startsWith(prefixToStrip + "share/")) {
+                    String relName = cleanName.substring(prefixToStrip.length())
                     ByteArrayOutputStream tbaos = new ByteArrayOutputStream()
                     int tn
                     while ((tn = tarIn.read(buf)) != -1) {
