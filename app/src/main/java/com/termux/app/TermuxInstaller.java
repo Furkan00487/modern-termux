@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -67,6 +68,37 @@ final class TermuxInstaller {
     private static final String LOG_TAG = "TermuxInstaller";
 
     /** Performs bootstrap setup if necessary. */
+    /**
+     * Ensure that the termux-setup-microphone script exists in $PREFIX/bin.
+     * This automatically handles upgrades where bootstrap.zip is not re-extracted.
+     */
+    static void ensureSetupMicrophoneScriptExists() {
+        try {
+            File binDir = TermuxConstants.TERMUX_BIN_PREFIX_DIR;
+            if (!binDir.exists() || !binDir.isDirectory()) return;
+
+            File micScript = new File(binDir, "termux-setup-microphone");
+            if (!micScript.exists()) {
+                String script = "#!/data/data/com.termux/files/usr/bin/bash\n\n" +
+                    "if [ \"$#\" != \"0\" ]; then\n" +
+                    "\techo 'kullanım: termux-setup-microphone'\n" +
+                    "\techo 'Mikrofon izninin verildiğinden emin olmak için argümansız çalıştırın'\n" +
+                    "\texit\n" +
+                    "fi\n\n" +
+                    "case \"${TERMUX__USER_ID:-}\" in ''|*[!0-9]*|0[0-9]*) TERMUX__USER_ID=0;; esac\n\n" +
+                    "am broadcast --user \"$TERMUX__USER_ID\" \\\n" +
+                    "\t-a \"com.termux.app.request_microphone_permission\" \\\n" +
+                    "\t \"com.termux\" > /dev/null\n";
+                try (FileOutputStream outStream = new FileOutputStream(micScript)) {
+                    outStream.write(script.getBytes(StandardCharsets.UTF_8));
+                }
+                //noinspection OctalInteger
+                Os.chmod(micScript.getAbsolutePath(), 0700);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
     static void setupBootstrapIfNeeded(final Activity activity, final Runnable whenDone) {
         String bootstrapErrorMessage;
         Error filesDirectoryAccessibleError;
@@ -118,6 +150,7 @@ final class TermuxInstaller {
             if (TermuxFileUtils.isTermuxPrefixDirectoryEmpty()) {
                 Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" exists but is empty or only contains specific unimportant files.");
             } else {
+                ensureSetupMicrophoneScriptExists();
                 whenDone.run();
                 return;
             }
