@@ -193,13 +193,30 @@ public class CmdEntryPoint extends ICmdEntryInterface.Stub {
         handler = new Handler();
     }
 
+    public static String resolveNativeLibraryPathFromCandidates(String symlinkPath, String nativeDirLibPath, String resourceLibPath) {
+        if (symlinkPath != null && new java.io.File(symlinkPath).exists())
+            return symlinkPath;
+        if (nativeDirLibPath != null && new java.io.File(nativeDirLibPath).exists())
+            return nativeDirLibPath;
+        return resourceLibPath;
+    }
+
     private static void initEntryPoint() {
         ctx = createContext();
+
+        String symlinkPath = "/data/data/com.termux/files/usr/libexec/termux-x11/libXlorie.so";
+        String nativeDirLibPath = null;
+        if (ctx != null) {
+            try {
+                nativeDirLibPath = ctx.getPackageManager().getApplicationInfo("com.termux", 0).nativeLibraryDir + "/libXlorie.so";
+            } catch (Exception ignored) {}
+        }
 
         String path = "lib/" + (android.os.Process.is64Bit() ? Build.SUPPORTED_64_BIT_ABIS[0] : Build.SUPPORTED_32_BIT_ABIS[0]) + "/libXlorie.so";
         ClassLoader loader = CmdEntryPoint.class.getClassLoader();
         URL res = loader != null ? loader.getResource(path) : null;
-        String libPath = res != null ? res.getFile().replace("file:", "") : null;
+        String resourceLibPath = res != null ? res.getFile().replace("file:", "") : null;
+        String libPath = resolveNativeLibraryPathFromCandidates(symlinkPath, nativeDirLibPath, resourceLibPath);
         if (libPath != null) {
             try {
                 System.load(libPath);

@@ -34,6 +34,7 @@ import java.util.Map;
 
 public class LorieApp extends Application {
     public static final int NOTIFICATION_ID = 7892;
+    public static final String X11_PREFS_NAME = "com.termux.x11_preferences";
 
     public final Prefs builtInPrefs = new Prefs();
     public final Prefs secondaryPrefs = new Prefs();
@@ -52,18 +53,8 @@ public class LorieApp extends Application {
     public void onCreate() {
         super.onCreate();
 
-        // A platform-supplied Context can identify as the host app's package in sharedUid builds.
-        Context prefsCtx = this;
-        if (!BuildConfig.APPLICATION_ID.equals(getPackageName())) {
-            try {
-                prefsCtx = createPackageContext(BuildConfig.APPLICATION_ID, 0);
-            } catch (PackageManager.NameNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        builtInPrefs.attach(prefsCtx, PreferenceManager.getDefaultSharedPreferences(prefsCtx));
-        secondaryPrefs.attach(prefsCtx, prefsCtx.getSharedPreferences("secondary", Context.MODE_PRIVATE));
+        builtInPrefs.attach(this, getSharedPreferences(X11_PREFS_NAME, Context.MODE_PRIVATE));
+        secondaryPrefs.attach(this, getSharedPreferences("secondary", Context.MODE_PRIVATE));
 
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
