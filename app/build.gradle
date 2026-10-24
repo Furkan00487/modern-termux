@@ -319,73 +319,36 @@ def patchBootstrapMotd(File zipFile) {
         zos.closeEntry()
     }
 
-    // Download and bundle xkeyboard-config (share/xkeyboard-config-2) so X11 works offline without external packages
-    File xkbDebFile = new File(projectDir, "src/main/cpp/xkeyboard-config_all.deb")
-    if (!xkbDebFile.exists()) {
-        String repoBase = "https://packages.termux.dev/apt/termux-main"
-        URL pkgIndexUrl = new URL(repoBase + "/dists/stable/main/binary-all/Packages")
-        def pkgConn = pkgIndexUrl.openConnection()
-        pkgConn.setRequestProperty("User-Agent", "curl/8.0")
-        String pkgIndexText = pkgConn.inputStream.getText("UTF-8")
-        String xkbRelPath = null
-        boolean inXkb = false
-        for (String line : pkgIndexText.split("\n")) {
-            if (line.startsWith("Package: ")) {
-                inXkb = (line.trim() == "Package: xkeyboard-config")
-            } else if (inXkb && line.startsWith("Filename: ")) {
-                xkbRelPath = line.substring("Filename: ".length()).trim()
-                break
-            }
-        }
-        if (!xkbRelPath) {
-            throw new GradleException("Could not find xkeyboard-config in Termux Packages index")
-        }
-        String xkbUrl = repoBase + "/" + xkbRelPath
-        logger.quiet("Downloading " + xkbUrl + " ...")
-        xkbDebFile.parentFile.mkdirs()
-        def debConn = new URL(xkbUrl).openConnection()
-        debConn.setRequestProperty("User-Agent", "curl/8.0")
-        debConn.inputStream.withStream { i -> xkbDebFile.withOutputStream { it << i } }
+    // Bundle XKB keyboard layout data (share/X11/xkb) directly from build host (/usr/share/X11/xkb) so X11 works offline without external packages
+    File hostXkbDir = new File("/usr/share/X11/xkb")
+    if (!hostXkbDir.exists()) {
+        hostXkbDir = new File("/data/data/com.termux/files/usr/share/X11/xkb")
     }
-    File assetsDir = new File(projectDir, "src/main/assets")
-    assetsDir.mkdirs()
-    File xkbAssetZip = new File(assetsDir, "xkb.zip")
-    java.util.zip.ZipOutputStream xkbAssetZos = new java.util.zip.ZipOutputStream(new BufferedOutputStream(new FileOutputStream(xkbAssetZip)))
-    def arIn = new org.apache.commons.compress.archivers.ar.ArArchiveInputStream(new BufferedInputStream(new FileInputStream(xkbDebFile)))
-    def arEntry
-    while ((arEntry = arIn.nextEntry) != null) {
-        if (arEntry.name == "data.tar.xz") {
-            def xzIn = new org.apache.commons.compress.compressors.xz.XZCompressorInputStream(arIn)
-            def tarIn = new org.apache.commons.compress.archivers.tar.TarArchiveInputStream(xzIn)
-            def tarEntry
-            String prefixToStrip = "data/data/com.termux/files/usr/"
-            while ((tarEntry = tarIn.nextEntry) != null) {
-                String cleanName = tarEntry.name.replaceFirst("^\\./", "")
-                if (!tarEntry.isDirectory() && !tarEntry.isSymbolicLink() && cleanName.startsWith(prefixToStrip + "share/")) {
-                    String relName = cleanName.substring(prefixToStrip.length())
-                    ByteArrayOutputStream tbaos = new ByteArrayOutputStream()
-                    int tn
-                    while ((tn = tarIn.read(buf)) != -1) {
-                        tbaos.write(buf, 0, tn)
-                    }
-                    byte[] tbytes = tbaos.toByteArray()
+    if (hostXkbDir.exists() && hostXkbDir.isDirectory()) {
+        File assetsDir = new File(projectDir, "src/main/assets")
+        assetsDir.mkdirs()
+        File xkbAssetZip = new File(assetsDir, "xkb.zip")
+        java.util.zip.ZipOutputStream xkbAssetZos = new java.util.zip.ZipOutputStream(new BufferedOutputStream(new FileOutputStream(xkbAssetZip)))
+        String basePath = hostXkbDir.canonicalPath
+        hostXkbDir.eachFileRecurse(groovy.io.FileType.FILES) { File f ->
+            String relSubPath = f.canonicalPath.substring(basePath.length() + 1).replace('\\', '/')
+            String zipEntryPath = "share/X11/xkb/" + relSubPath
+            byte[] fbytes = f.bytes
 
-                    java.util.zip.ZipEntry ze1 = new java.util.zip.ZipEntry(relName)
-                    zos.putNextEntry(ze1)
-                    zos.write(tbytes)
-                    zos.closeEntry()
+            java.util.zip.ZipEntry ze1 = new java.util.zip.ZipEntry(zipEntryPath)
+            zos.putNextEntry(ze1)
+            zos.write(fbytes)
+            zos.closeEntry()
 
-                    java.util.zip.ZipEntry ze2 = new java.util.zip.ZipEntry(relName)
-                    xkbAssetZos.putNextEntry(ze2)
-                    xkbAssetZos.write(tbytes)
-                    xkbAssetZos.closeEntry()
-                }
-            }
-            break
+            java.util.zip.ZipEntry ze2 = new java.util.zip.ZipEntry(zipEntryPath)
+            xkbAssetZos.putNextEntry(ze2)
+            xkbAssetZos.write(fbytes)
+            xkbAssetZos.closeEntry()
         }
+        xkbAssetZos.close()
+    } else {
+        throw new GradleException("Host XKB directory (/usr/share/X11/xkb) not found! Install xkb-data on the build host.")
     }
-    arIn.close()
-    xkbAssetZos.close()
 
     zos.close()
     zf.close()
