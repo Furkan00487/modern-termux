@@ -1,0 +1,64 @@
+[submodule "x11/src/main/cpp/libtirpc"]
+	path = x11/src/main/cpp/libtirpc
+	url = https://github.com/alisw/libtirpc
+	ignore = dirty
+[submodule "x11/src/main/cpp/pixman"]
+	path = x11/src/main/cpp/pixman
+	url = https://gitlab.freedesktop.org/pixman/pixman.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/libfontenc"]
+	path = x11/src/main/cpp/libfontenc
+	url = https://gitlab.freedesktop.org/xorg/lib/libfontenc.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/libxau"]
+	path = x11/src/main/cpp/libxau
+	url = https://gitlab.freedesktop.org/xorg/lib/libxau.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/libxdmcp"]
+	path = x11/src/main/cpp/libxdmcp
+	url = https://gitlab.freedesktop.org/xorg/lib/libxdmcp.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/libxfont"]
+	path = x11/src/main/cpp/libxfont
+	url = https://gitlab.freedesktop.org/xorg/lib/libxfont.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/libxkbfile"]
+	path = x11/src/main/cpp/libxkbfile
+	url = https://gitlab.freedesktop.org/xorg/lib/libxkbfile.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/libxshmfence"]
+	path = x11/src/main/cpp/libxshmfence
+	url = https://gitlab.freedesktop.org/xorg/lib/libxshmfence.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/libxtrans"]
+	path = x11/src/main/cpp/libxtrans
+	url = https://gitlab.freedesktop.org/xorg/lib/libxtrans.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/libepoxy"]
+	path = x11/src/main/cpp/libepoxy
+	url = https://github.com/anholt/libepoxy
+	ignore = dirty
+[submodule "x11/src/main/cpp/libxcvt"]
+	path = x11/src/main/cpp/libxcvt
+	url = https://gitlab.freedesktop.org/xorg/lib/libxcvt.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/libx11"]
+	path = x11/src/main/cpp/libx11
+	url = https://gitlab.freedesktop.org/xorg/lib/libx11.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/xorgproto"]
+	path = x11/src/main/cpp/xorgproto
+	url = https://gitlab.freedesktop.org/xorg/proto/xorgproto.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/xkbcomp"]
+	path = x11/src/main/cpp/xkbcomp
+	url = https://gitlab.freedesktop.org/xorg/app/xkbcomp.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/xserver"]
+	path = x11/src/main/cpp/xserver
+	url = https://gitlab.freedesktop.org/xorg/xserver.git
+	ignore = dirty
+[submodule "x11/src/main/cpp/bzip2"]
+	path = x11/src/main/cpp/bzip2
+	url = https://gitlab.com/bzip2/bzip2.git
+	ignore = dirty
