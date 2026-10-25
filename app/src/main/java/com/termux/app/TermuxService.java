@@ -107,9 +107,13 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
 
     private static final String LOG_TAG = "TermuxService";
 
+    private static volatile boolean sX11Active = false;
+    private static TermuxService sInstance;
+
     @Override
     public void onCreate() {
         Logger.logVerbose(LOG_TAG, "onCreate");
+        sInstance = this;
 
         // Get Termux app SharedProperties without loading from disk since TermuxApplication handles
         // load and TermuxActivity handles reloads
@@ -168,6 +172,7 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
     @Override
     public void onDestroy() {
         Logger.logVerbose(LOG_TAG, "onDestroy");
+        sInstance = null;
 
         TermuxShellUtils.clearTermuxTMPDIR(true);
 
@@ -816,8 +821,8 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
         // No need to show a timestamp:
         builder.setShowWhen(false);
 
-        // Set notification icon
-        builder.setSmallIcon(R.drawable.ic_service_notification);
+        // Set notification icon (switches dynamically to X11 icon when X11 activity is active)
+        builder.setSmallIcon(sX11Active ? com.termux.x11.R.drawable.ic_x11_icon : R.drawable.ic_service_notification);
 
         // Set background color for small notification icon (Modern Termux Cyan)
         builder.setColor(0xFF00E5FF);
@@ -857,6 +862,27 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
         } else {
             ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(TermuxConstants.TERMUX_APP_NOTIFICATION_ID, buildNotification());
         }
+    }
+
+    /**
+     * Dynamically update X11 active state and update the foreground notification icon if changed.
+     *
+     * @param active Whether X11 activity is currently active/resumed.
+     * @param context Context for updating notification or null.
+     */
+    public static synchronized void setX11Active(boolean active, Context context) {
+        if (sX11Active == active) return;
+        sX11Active = active;
+        if (sInstance != null) {
+            sInstance.updateNotification();
+        }
+    }
+
+    /**
+     * Check whether X11 is currently active.
+     */
+    public static boolean isX11Active() {
+        return sX11Active;
     }
 
 

@@ -91,4 +91,13 @@ public class TermuxX11IntegrationTest {
         assertTrue(com.termux.R.drawable.ic_service_notification != 0);
         assertTrue(com.termux.x11.R.drawable.ic_x11_icon != 0);
     }
+
+    @Test
+    public void testDynamicX11NotificationIconState() {
+        assertFalse(TermuxService.isX11Active());
+        TermuxService.setX11Active(true, null);
+        assertTrue(TermuxService.isX11Active());
+        TermuxService.setX11Active(false, null);
+        assertFalse(TermuxService.isX11Active());
+    }
 }

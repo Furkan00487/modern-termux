@@ -85,4 +85,16 @@ public class TermuxApplication extends LorieApp {
         preferences.setLogLevel(null, preferences.getLogLevel());
     }
 
+    @Override
+    public void onActivityResumed(com.termux.x11.MainActivity activity) {
+        super.onActivityResumed(activity);
+        TermuxService.setX11Active(true, this);
+    }
+
+    @Override
+    public void onActivityPaused() {
+        super.onActivityPaused();
+        TermuxService.setX11Active(false, this);
+    }
+
 }
