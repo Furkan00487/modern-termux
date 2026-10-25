@@ -27,6 +27,7 @@
 
     <!-- Termux Bootstrap Packages Installation -->
     <string name="bootstrap_installer_body">Installing bootstrap packages…</string>
+    <string name="bootstrap_updater_body">Updating bootstrap packages…</string>
     <string name="bootstrap_error_title">&TERMUX_APP_NAME; Bootstrap Error</string>
     <string name="bootstrap_error_body">&TERMUX_APP_NAME; was unable to install the bootstrap packages.</string>
     <string name="bootstrap_error_abort">Abort</string>

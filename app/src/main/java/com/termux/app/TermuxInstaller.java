@@ -25,11 +25,14 @@ import com.termux.shared.errors.Error;
 import com.termux.shared.android.PackageUtils;
 import com.termux.shared.termux.TermuxConstants;
 import com.termux.shared.termux.TermuxUtils;
+import com.termux.shared.termux.settings.preferences.TermuxAppSharedPreferences;
+import com.termux.shared.termux.settings.preferences.TermuxPreferenceConstants.TERMUX_APP;
 import com.termux.shared.termux.shell.command.environment.TermuxShellEnvironment;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -95,6 +98,65 @@ final class TermuxInstaller {
                 //noinspection OctalInteger
                 Os.chmod(micScript.getAbsolutePath(), 0700);
             }
+        } catch (Exception ignored) {
+        }
+    }
+
+    static String getModernTermuxMotdContent() {
+        return "\033[1;34m╔════════════════════════════════════════════════════════╗\n" +
+            "║              MODERN TERMUX'A HOŞ GELDİN!               ║\n" +
+            "╚════════════════════════════════════════════════════════╝\033[0m\n\n" +
+            " Paket aramak için:          \033[1;32mpkg search <sorgu>\033[0m\n" +
+            " Paket kurmak için:          \033[1;32mpkg install <paket>\033[0m\n" +
+            " Paketleri güncellemek için: \033[1;32mpkg upgrade\033[0m\n" +
+            " Sistem bilgisi:             \033[1;32mtermux-info\033[0m\n\n" +
+            " Topluluk & Destek: https://github.com/Furkan00487/modern-termux\n\n";
+    }
+
+    static void ensureModernTermuxMotdFile(File motdFile) {
+        if (motdFile == null) return;
+        try {
+            boolean shouldWrite = false;
+            if (!motdFile.exists()) {
+                File parent = motdFile.getParentFile();
+                if (parent != null && !parent.exists()) {
+                    //noinspection ResultOfMethodCallIgnored
+                    parent.mkdirs();
+                }
+                shouldWrite = true;
+            } else {
+                byte[] bytes = new byte[(int) Math.min(motdFile.length(), 4096)];
+                try (FileInputStream fis = new FileInputStream(motdFile)) {
+                    int read = fis.read(bytes);
+                    if (read > 0) {
+                        String current = new String(bytes, 0, read, StandardCharsets.UTF_8);
+                        if (current.contains("Welcome to Termux!") || current.contains("termux.dev") || !current.contains("MODERN TERMUX")) {
+                            shouldWrite = true;
+                        }
+                    } else {
+                        shouldWrite = true;
+                    }
+                }
+            }
+
+            if (shouldWrite) {
+                try (FileOutputStream fos = new FileOutputStream(motdFile)) {
+                    fos.write(getModernTermuxMotdContent().getBytes(StandardCharsets.UTF_8));
+                }
+                //noinspection OctalInteger
+                Os.chmod(motdFile.getAbsolutePath(), 0644);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    static void ensureModernTermuxMotdExists() {
+        try {
+            File etcDir = new File(TERMUX_PREFIX_DIR, "etc");
+            if (!etcDir.exists() || !etcDir.isDirectory()) return;
+
+            File motdFile = new File(etcDir, "motd");
+            ensureModernTermuxMotdFile(motdFile);
         } catch (Exception ignored) {
         }
     }
@@ -328,8 +390,42 @@ final class TermuxInstaller {
             if (TermuxFileUtils.isTermuxPrefixDirectoryEmpty()) {
                 Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" exists but is empty or only contains specific unimportant files.");
             } else {
+                TermuxAppSharedPreferences preferences = TermuxAppSharedPreferences.build(activity);
+                int lastVersionCode = preferences != null ? preferences.getInt(TERMUX_APP.KEY_LAST_BOOTSTRAP_VERSION_CODE, 0) : 0;
+                int currentVersionCode = BuildConfig.VERSION_CODE;
+
+                if (lastVersionCode < currentVersionCode) {
+                    final ProgressDialog updateProgress = ProgressDialog.show(activity, null, activity.getString(R.string.bootstrap_updater_body), true, false);
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                Logger.logInfo(LOG_TAG, "Updating " + TermuxConstants.TERMUX_APP_NAME + " bootstrap components.");
+                                ensureSetupMicrophoneScriptExists();
+                                ensureTermuxX11FilesExist(activity);
+                                ensureModernTermuxMotdExists();
+                                if (preferences != null) {
+                                    preferences.putInt(TERMUX_APP.KEY_LAST_BOOTSTRAP_VERSION_CODE, currentVersionCode, true);
+                                }
+                            } catch (Exception e) {
+                                Logger.logStackTraceWithMessage(LOG_TAG, "Error updating bootstrap components", e);
+                            } finally {
+                                activity.runOnUiThread(() -> {
+                                    try {
+                                        updateProgress.dismiss();
+                                    } catch (RuntimeException ignored) {
+                                    }
+                                    whenDone.run();
+                                });
+                            }
+                        }
+                    }.start();
+                    return;
+                }
+
                 ensureSetupMicrophoneScriptExists();
                 ensureTermuxX11FilesExist(activity);
+                ensureModernTermuxMotdExists();
                 whenDone.run();
                 return;
             }
@@ -481,6 +577,12 @@ final class TermuxInstaller {
 
                     ensureSetupMicrophoneScriptExists();
                     ensureTermuxX11FilesExist(activity);
+                    ensureModernTermuxMotdExists();
+
+                    TermuxAppSharedPreferences preferences = TermuxAppSharedPreferences.build(activity);
+                    if (preferences != null) {
+                        preferences.putInt(TERMUX_APP.KEY_LAST_BOOTSTRAP_VERSION_CODE, BuildConfig.VERSION_CODE, true);
+                    }
 
                     // Recreate env file since termux prefix was wiped earlier
                     TermuxShellEnvironment.writeEnvironmentToFile(activity);

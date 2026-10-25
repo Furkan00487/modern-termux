@@ -26,6 +26,7 @@
 
     <!-- Termux Bootstrap Packages Installation -->
     <string name="bootstrap_installer_body">Başlangıç paketleri yükleniyor…</string>
+    <string name="bootstrap_updater_body">Başlangıç paketleri güncelleniyor…</string>
     <string name="bootstrap_error_title">&TERMUX_APP_NAME; Başlangıç Hatası</string>
     <string name="bootstrap_error_body">&TERMUX_APP_NAME; başlangıç paketlerini yükleyemedi.</string>
     <string name="bootstrap_error_abort">Durdur</string>

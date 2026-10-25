@@ -88,6 +88,12 @@ public final class TermuxPreferenceConstants {
     public static final class TERMUX_APP {
 
         /**
+         * Defines the key for the last installed bootstrap version code to detect app upgrades.
+         */
+        public static final String KEY_LAST_BOOTSTRAP_VERSION_CODE = "last_bootstrap_version_code";
+
+
+        /**
          * Defines the key for whether terminal view margin adjustment that is done to prevent soft
          * keyboard from covering bottom part of terminal view on some devices is enabled or not.
          * Margin adjustment may cause screen flickering on some devices and so should be disabled.
