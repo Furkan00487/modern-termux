@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Environment;
 import android.system.Os;
@@ -13,6 +14,7 @@ import android.view.WindowManager;
 import com.termux.BuildConfig;
 import com.termux.R;
 import com.termux.shared.file.FileUtils;
+import com.termux.shared.settings.preferences.SharedPreferenceUtils;
 import com.termux.shared.shell.command.ExecutionCommand;
 import com.termux.shared.shell.command.runner.app.AppShell;
 import com.termux.shared.termux.TermuxBootstrap;
@@ -391,7 +393,8 @@ final class TermuxInstaller {
                 Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" exists but is empty or only contains specific unimportant files.");
             } else {
                 TermuxAppSharedPreferences preferences = TermuxAppSharedPreferences.build(activity);
-                int lastVersionCode = preferences != null ? preferences.getInt(TERMUX_APP.KEY_LAST_BOOTSTRAP_VERSION_CODE, 0) : 0;
+                SharedPreferences sharedPreferences = preferences != null ? preferences.getSharedPreferences() : null;
+                int lastVersionCode = SharedPreferenceUtils.getInt(sharedPreferences, TERMUX_APP.KEY_LAST_BOOTSTRAP_VERSION_CODE, 0);
                 int currentVersionCode = BuildConfig.VERSION_CODE;
 
                 if (lastVersionCode < currentVersionCode) {
@@ -404,9 +407,7 @@ final class TermuxInstaller {
                                 ensureSetupMicrophoneScriptExists();
                                 ensureTermuxX11FilesExist(activity);
                                 ensureModernTermuxMotdExists();
-                                if (preferences != null) {
-                                    preferences.putInt(TERMUX_APP.KEY_LAST_BOOTSTRAP_VERSION_CODE, currentVersionCode, true);
-                                }
+                                SharedPreferenceUtils.setInt(sharedPreferences, TERMUX_APP.KEY_LAST_BOOTSTRAP_VERSION_CODE, currentVersionCode, true);
                             } catch (Exception e) {
                                 Logger.logStackTraceWithMessage(LOG_TAG, "Error updating bootstrap components", e);
                             } finally {
@@ -580,9 +581,8 @@ final class TermuxInstaller {
                     ensureModernTermuxMotdExists();
 
                     TermuxAppSharedPreferences preferences = TermuxAppSharedPreferences.build(activity);
-                    if (preferences != null) {
-                        preferences.putInt(TERMUX_APP.KEY_LAST_BOOTSTRAP_VERSION_CODE, BuildConfig.VERSION_CODE, true);
-                    }
+                    SharedPreferences sharedPreferences = preferences != null ? preferences.getSharedPreferences() : null;
+                    SharedPreferenceUtils.setInt(sharedPreferences, TERMUX_APP.KEY_LAST_BOOTSTRAP_VERSION_CODE, BuildConfig.VERSION_CODE, true);
 
                     // Recreate env file since termux prefix was wiped earlier
                     TermuxShellEnvironment.writeEnvironmentToFile(activity);
