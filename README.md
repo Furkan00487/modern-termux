@@ -63,7 +63,7 @@ The output should report `Verified using v2 scheme (APK Signature Scheme v2): tr
 
 ## Upgrading and Uninstalling
 
-Installing a newer release over an existing Modern Termux installation upgrades it in place and keeps your data. On the first launch after an upgrade, the app refreshes its bootstrap files and welcome banner.
+Installing a newer release over an existing Modern Termux installation upgrades it in place and keeps your data. On the first launch after an upgrade (a higher `versionCode`), the app refreshes the bundled `termux-x11` helper scripts and the welcome banner.
 
 To uninstall, remove Modern Termux and any Termux plugin apps from `Android Settings` -> `Apps`.
 
@@ -76,7 +76,7 @@ cd modern-termux
 ./gradlew downloadBootstraps assembleRelease
 ```
 
-The repository includes native X11 code as git submodules, so clone with `--recursive`. Release signing is configured through the `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD` and `KEYSTORE_ALIAS` environment variables, which are provided by GitHub Secrets in CI. Without them the release build is not signed with the official key.
+The repository includes native X11 code as git submodules, so clone with `--recursive`. Release signing is configured through the `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD` and `KEYSTORE_ALIAS` environment variables, which are provided by GitHub Secrets in CI. Without them `assembleRelease` produces an unsigned APK, which Android will not install until you sign it with your own key.
 
 Releases are produced by the [Release Build](.github/workflows/release_build.yml) workflow.
 
@@ -84,7 +84,7 @@ Releases are produced by the [Release Build](.github/workflows/release_build.yml
 
 You can help debug problems by setting the `logcat` log level under `Termux` app settings -> `Debugging` -> `Log Level`. The default is `Normal`, and `Verbose` logs additional information. Revert it to `Normal` when you are done, because verbose logging can pass private data to `logcat` and slows execution.
 
-When you report a bug, please include the app version, your Android version and device, and relevant `logcat` output.
+When you report a problem, include the app version, your Android version and device, and relevant `logcat` output.
 
 ## Contributing
 
@@ -105,7 +105,7 @@ Modern Termux keeps the upstream package name, so the Termux documentation appli
 - [Running Commands in Termux From Other Apps via `RUN_COMMAND` intent](https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent)
 - [Termux Packages](https://github.com/termux/termux-packages), the source of the bootstrap archives and installable packages
 
-Note that the upstream wiki, community channels and issue trackers are for the upstream Termux project. Report Modern Termux problems in this repository's [issue tracker](https://github.com/Furkan00487/modern-termux/issues).
+Note that the upstream wiki, community channels and issue trackers are for the upstream Termux project, not for Modern Termux.
 
 ## License
 
