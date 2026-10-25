@@ -84,7 +84,7 @@ Releases are produced by the [Release Build](.github/workflows/release_build.yml
 
 You can help debug problems by setting the `logcat` log level under `Termux` app settings -> `Debugging` -> `Log Level`. The default is `Normal`, and `Verbose` logs additional information. Revert it to `Normal` when you are done, because verbose logging can pass private data to `logcat` and slows execution.
 
-When you report a problem, include the app version, your Android version and device, and relevant `logcat` output.
+When you report a problem in the [issue tracker](https://github.com/Furkan00487/modern-termux/issues), include the app version, your Android version and device, and relevant `logcat` output.
 
 ## Contributing
 
@@ -105,7 +105,7 @@ Modern Termux keeps the upstream package name, so the Termux documentation appli
 - [Running Commands in Termux From Other Apps via `RUN_COMMAND` intent](https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent)
 - [Termux Packages](https://github.com/termux/termux-packages), the source of the bootstrap archives and installable packages
 
-Note that the upstream wiki, community channels and issue trackers are for the upstream Termux project, not for Modern Termux.
+Note that the upstream wiki, community channels and issue trackers are for the upstream Termux project. Report Modern Termux problems in this repository's [issue tracker](https://github.com/Furkan00487/modern-termux/issues).
 
 ## License
 
