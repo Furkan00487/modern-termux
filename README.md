@@ -82,9 +82,32 @@ Releases are produced by the [Release Build](.github/workflows/release_build.yml
 
 ## Debugging
 
-You can help debug problems by setting the `logcat` log level under `Termux` app settings -> `Debugging` -> `Log Level`. The default is `Normal`, and `Verbose` logs additional information. Revert it to `Normal` when you are done, because verbose logging can pass private data to `logcat` and slows execution.
+Modern Termux uses a localized Turkish UI by default. To capture detailed diagnostic logs for troubleshooting:
 
-When you report a problem in the [issue tracker](https://github.com/Furkan00487/modern-termux/issues), include the app version, your Android version and device, and relevant `logcat` output.
+1. **Open Settings:**
+   - Swipe from the left edge of the screen to open the navigation drawer and tap the gear icon ⚙️ (**Ayarlar**), or
+   - Long-press anywhere on the terminal screen and select **Ayarlar** (**Settings**).
+2. **Navigate to Log Level:**
+   - Tap **Modern Termux** (or **Termux**).
+   - Tap **Hata Ayıklama** (**Debugging**).
+   - Under **Günlük Kaydı (Logging)**, select **Günlük Düzeyi** (**Log Level**).
+3. **Change Log Level:**
+   - Select **Ayrıntılı (Verbose)** (or **Hata Ayıklama (Debug)**).
+   - **Normal** is the default. Always revert back to **Normal** after capturing logs, as verbose logging increases execution overhead and writes detailed session data to `logcat`.
+
+You can dump or filter `logcat` directly from Termux:
+
+```bash
+logcat -d | grep -i "com.termux"
+```
+
+Or from a connected computer via ADB:
+
+```bash
+adb logcat -s "termux:*"
+```
+
+When you report a problem in the [issue tracker](https://github.com/Furkan00487/modern-termux/issues), please include your Modern Termux version, Android version, device model, and the relevant `logcat` output.
 
 ## Contributing
 
