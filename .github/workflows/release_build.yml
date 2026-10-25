@@ -92,9 +92,17 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 -d > /tmp/release.p12
           APKSIGNER=$(find $ANDROID_SDK_ROOT/build-tools -name apksigner | sort -V | tail -n 1)
           echo "Found apksigner at: $APKSIGNER"
+
+          ACTUAL_ALIAS="$KEYSTORE_ALIAS"
+          DETECTED_ALIAS=$(keytool -list -keystore /tmp/release.p12 -storepass "$KEYSTORE_PASSWORD" -storetype PKCS12 2>/dev/null | grep -E 'PrivateKeyEntry|trustedCertEntry' | head -n 1 | cut -d, -f1 | cut -d' ' -f1)
+          if [ -n "$DETECTED_ALIAS" ]; then
+            ACTUAL_ALIAS="$DETECTED_ALIAS"
+          fi
+          echo "Using keystore alias: $ACTUAL_ALIAS"
+
           $APKSIGNER sign --ks /tmp/release.p12 \
             --ks-pass "pass:$KEYSTORE_PASSWORD" \
-            --ks-key-alias "$KEYSTORE_ALIAS" \
+            --ks-key-alias "$ACTUAL_ALIAS" \
             --key-pass "pass:$KEYSTORE_PASSWORD" \
             --v1-signing-enabled false \
             --v2-signing-enabled true \
