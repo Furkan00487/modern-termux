@@ -80,7 +80,7 @@ public class LorieApp extends Application {
                 .setPriority(Notification.PRIORITY_MAX)
                 .setSilent(true)
                 .setShowWhen(false)
-                .setColor(0xFF607D8B)
+                .setColor(0xFF00E5FF)
                 .build();
     }
 

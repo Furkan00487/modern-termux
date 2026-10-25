@@ -819,8 +819,8 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
         // Set notification icon
         builder.setSmallIcon(R.drawable.ic_service_notification);
 
-        // Set background color for small notification icon
-        builder.setColor(0xFF607D8B);
+        // Set background color for small notification icon (Modern Termux Cyan)
+        builder.setColor(0xFF00E5FF);
 
         // TermuxSessions are always ongoing
         builder.setOngoing(true);

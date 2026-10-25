@@ -85,4 +85,10 @@ public class TermuxX11IntegrationTest {
         String content = new String(java.nio.file.Files.readAllBytes(missingMotd.toPath()), java.nio.charset.StandardCharsets.UTF_8);
         assertTrue(content.contains("MODERN TERMUX'A HOŞ GELDİN!"));
     }
+
+    @Test
+    public void testNotificationDrawablesExist() {
+        assertTrue(com.termux.R.drawable.ic_service_notification != 0);
+        assertTrue(com.termux.x11.R.drawable.ic_x11_icon != 0);
+    }
 }
