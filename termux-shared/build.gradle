@@ -86,7 +86,7 @@ afterEvaluate {
                 from components.default
                 groupId = 'com.termux'
                 artifactId = 'termux-shared'
-                version = '0.120.1'
+                version = '0.121.0'
                 artifact(sourceJar)
             }
         }

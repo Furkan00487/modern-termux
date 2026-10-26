@@ -163,6 +163,38 @@ final class TermuxInstaller {
         }
     }
 
+    static String getTermuxMotdRefreshScriptContent() {
+        return "#!/data/data/com.termux/files/usr/bin/bash\n\n" +
+            "# Modern Termux:MOTD eklentisinin varlık kontrolü (pm path ve sharedUserId veri dizini)\n" +
+            "if ! /system/bin/pm path com.termux.motd >/dev/null 2>&1 && [ ! -d \"/data/data/com.termux.motd\" ]; then\n" +
+            "    echo -e \"\\033[1;31m[HATA] Modern Termux:MOTD eklentisi (com.termux.motd) kurulu değil!\\033[0m\"\n" +
+            "    echo -e \"\\033[0;33mDinamik MOTD ekranını kullanmak için lütfen Modern Termux:MOTD eklentisini yükleyin.\\033[0m\"\n" +
+            "    exit 1\n" +
+            "fi\n\n" +
+            "DYN_MOTD_SCRIPT=\"/data/data/com.termux/files/usr/etc/motd.d/dyn-motd.sh\"\n" +
+            "if [ -f \"$DYN_MOTD_SCRIPT\" ]; then\n" +
+            "    bash \"$DYN_MOTD_SCRIPT\"\n" +
+            "else\n" +
+            "    echo -e \"\\033[1;36m[Modern Termux:MOTD]\\033[0m Eklenti kurulu ancak henüz kaydedilmiş bir dinamik şablon bulunamadı.\"\n" +
+            "    echo -e \"\\033[0;32mLütfen Modern Termux:MOTD uygulamasını açarak dilediğiniz temayı uygulayın.\\033[0m\"\n" +
+            "fi\n";
+    }
+
+    static void ensureTermuxMotdRefreshScriptExists() {
+        try {
+            File binDir = TermuxConstants.TERMUX_BIN_PREFIX_DIR;
+            if (!binDir.exists() || !binDir.isDirectory()) return;
+
+            File refreshScript = new File(binDir, "termux-motd-refresh");
+            try (FileOutputStream outStream = new FileOutputStream(refreshScript)) {
+                outStream.write(getTermuxMotdRefreshScriptContent().getBytes(StandardCharsets.UTF_8));
+            }
+            //noinspection OctalInteger
+            Os.chmod(refreshScript.getAbsolutePath(), 0700);
+        } catch (Exception ignored) {
+        }
+    }
+
     static String getTermuxX11ScriptContent() {
         return "#!/data/data/com.termux/files/usr/bin/bash\n" +
             "if [ ! -e /system/bin/getprop ] || [ ! -e /system/bin/app_process ]; then\n" +
@@ -407,6 +439,7 @@ final class TermuxInstaller {
                                 ensureSetupMicrophoneScriptExists();
                                 ensureTermuxX11FilesExist(activity);
                                 ensureModernTermuxMotdExists();
+                                ensureTermuxMotdRefreshScriptExists();
                                 SharedPreferenceUtils.setInt(sharedPreferences, TERMUX_APP.KEY_LAST_BOOTSTRAP_VERSION_CODE, currentVersionCode, true);
                             } catch (Exception e) {
                                 Logger.logStackTraceWithMessage(LOG_TAG, "Error updating bootstrap components", e);
@@ -427,6 +460,7 @@ final class TermuxInstaller {
                 ensureSetupMicrophoneScriptExists();
                 ensureTermuxX11FilesExist(activity);
                 ensureModernTermuxMotdExists();
+                ensureTermuxMotdRefreshScriptExists();
                 whenDone.run();
                 return;
             }
@@ -579,6 +613,7 @@ final class TermuxInstaller {
                     ensureSetupMicrophoneScriptExists();
                     ensureTermuxX11FilesExist(activity);
                     ensureModernTermuxMotdExists();
+                    ensureTermuxMotdRefreshScriptExists();
 
                     TermuxAppSharedPreferences preferences = TermuxAppSharedPreferences.build(activity);
                     SharedPreferences sharedPreferences = preferences != null ? preferences.getSharedPreferences() : null;

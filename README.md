@@ -191,6 +191,9 @@ termux-x11-preference displayScale:100 fullscreen:true
 ### `termux-setup-microphone`
 Broadcasts the intent request to prompt the Android system for runtime audio recording permission (`android.permission.RECORD_AUDIO`).
 
+### `termux-motd-refresh`
+Refreshes and displays the dynamic MOTD banner with live Battery, RAM, and Storage stats if the **Modern Termux:MOTD** companion app is installed. If the companion app is not installed, it outputs a clean, colored error guiding you to install it.
+
 ---
 
 ## Installation

@@ -100,4 +100,13 @@ public class TermuxX11IntegrationTest {
         TermuxService.setX11Active(false, null);
         assertFalse(TermuxService.isX11Active());
     }
+
+    @Test
+    public void testTermuxMotdRefreshScriptContent() {
+        String script = TermuxInstaller.getTermuxMotdRefreshScriptContent();
+        assertTrue(script.contains("com.termux.motd"));
+        assertTrue(script.contains("\033[1;31m[HATA]"));
+        assertTrue(script.contains("dyn-motd.sh"));
+        assertTrue(script.contains("exit 1"));
+    }
 }

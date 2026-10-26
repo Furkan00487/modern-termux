@@ -191,6 +191,9 @@ termux-x11-preference displayScale:100 fullscreen:true
 ### `termux-setup-microphone`
 Android sistemine yayın (broadcast) göndererek mikrofon izni isteme iletişim kutusunu tetikler (`android.permission.RECORD_AUDIO`).
 
+### `termux-motd-refresh`
+**Modern Termux:MOTD** eklentisi kuruluysa anlık Pil, RAM, Depolama ve Çalışma Süresi bilgilerini içeren dinamik karşılama ekranını yeniler ve basar. Eklenti kurulu değilse kırmızı renkli açıklayıcı bir uyarı verir.
+
 ---
 
 ## Kurulum

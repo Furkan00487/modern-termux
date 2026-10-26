@@ -73,6 +73,7 @@ public class TermuxApplication extends LorieApp {
         if (isTermuxFilesDirectoryAccessible) {
             TermuxShellEnvironment.writeEnvironmentToFile(this);
             TermuxInstaller.ensureTermuxX11FilesExist(this);
+            TermuxInstaller.ensureTermuxMotdRefreshScriptExists();
         }
     }
 
