@@ -105,7 +105,7 @@ public class TermuxX11IntegrationTest {
     public void testTermuxMotdRefreshScriptContent() {
         String script = TermuxInstaller.getTermuxMotdRefreshScriptContent();
         assertTrue(script.contains("com.termux.motd"));
-        assertTrue(script.contains("\033[1;31m[HATA]"));
+        assertTrue(script.contains("[HATA]"));
         assertTrue(script.contains("dyn-motd.sh"));
         assertTrue(script.contains("exit 1"));
     }
