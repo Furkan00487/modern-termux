@@ -5,13 +5,24 @@
 [![Unit tests](https://github.com/Furkan00487/modern-termux/actions/workflows/run_tests.yml/badge.svg)](https://github.com/Furkan00487/modern-termux/actions/workflows/run_tests.yml)
 [![License: GPL v3](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 
-**Modern Termux** is an enhanced fork of the [Termux](https://github.com/termux/termux-app) Android terminal emulator and Linux environment. It ships with built-in X11 graphical support, event-driven lifecycle management for low battery usage, and signed release builds.
+🌐 **[English](README.md)** | **[Türkçe](README.tr.md)**
 
-> This project is a fork of [termux/termux-app](https://github.com/termux/termux-app). The terminal emulation, shell environment and package ecosystem originate from the upstream Termux project and its contributors.
+---
+
+**Modern Termux** is an enhanced fork of the [Termux](https://github.com/termux/termux-app) Android terminal emulator and Linux environment. It ships with built-in X11 graphical support, event-driven lifecycle management for zero idle CPU drain, dedicated drawer navigation shortcuts, out-of-the-box audio and microphone support, and signed production release builds.
+
+> This project is a fork of [termux/termux-app](https://github.com/termux/termux-app). The terminal emulation engine, Linux shell environment, and package repository ecosystem originate from the upstream Termux project and its contributors.
+
+---
 
 ## Contents
 
-- [Features](#features)
+- [Why Modern Termux?](#why-modern-termux)
+- [Key Features](#key-features)
+- [Quickstart: Graphical Desktop (X11)](#quickstart-graphical-desktop-x11)
+- [Audio & Microphone Setup](#audio--microphone-setup)
+- [UI & Navigation Drawer Shortcuts](#ui--navigation-drawer-shortcuts)
+- [Built-in CLI Utilities](#built-in-cli-utilities)
 - [Installation](#installation)
 - [Verifying a Download](#verifying-a-download)
 - [Upgrading and Uninstalling](#upgrading-and-uninstalling)
@@ -21,120 +32,280 @@
 - [Upstream Resources](#upstream-resources)
 - [License](#license)
 
-## Features
+---
 
-- **Integrated X11 display server.** Termux:X11 is built into the app, so a graphical session needs no separate APK. Start it with the bundled `termux-x11` command.
-- **Dynamic status bar icon.** The persistent notification icon switches to the X11 icon (`X_`) while the X11 screen is in the foreground and returns to the terminal icon (`>_`) when you leave it.
-- **Battery-friendly lifecycle handling.** The former 200 ms `serverWatchdog` polling loop was removed. Notification updates are now event-driven and fire only when the X11 screen is entered or left, so the CPU is not woken while the app sits idle.
-- **Signed releases.** Every release APK is signed in GitHub Actions with a dedicated private release key (APK Signature Scheme v2 and v3). No public test key is used.
-- **Verified downloads.** Each release publishes exactly one APK and one SHA-256 checksum file.
-- **Turkish welcome banner.** The login message (MOTD) is localized.
-- **Neon cyan theme.** The primary accent color is `#00E5FF`.
+## Why Modern Termux?
+
+| Capability / Feature | Upstream Termux | Modern Termux |
+| :--- | :--- | :--- |
+| **X11 Graphical Support** | Requires installing a separate third-party Termux:X11 APK | **Fully integrated `:x11` engine** inside the same app |
+| **Status Bar Icon** | Static terminal icon (`>_`) | **Dynamic status icon**: Automatically switches to `X_` in graphical mode and returns to `>_` |
+| **Battery & CPU Efficiency** | Wakes CPU every 200 ms via `serverWatchdog` loop | **Event-driven**: Watchdog loop eliminated; 0% background overhead |
+| **X11 Navigation & Config** | Manual switching, separate app preference menu | **Drawer quick-switch button** + **Long-press** for instant settings |
+| **Keyboard Layouts (XKB)** | Requires external repository setup or manual packaging | **Bundled XKB archive (`xkb.zip`)** auto-extracted on launch |
+| **Microphone & Audio** | Manual permission debugging, external script hunting | **Native `RECORD_AUDIO` permission** + `termux-setup-microphone` |
+| **UI Theme & Accent** | Default dark grey/black scheme | **Neon Cyan (`#00E5FF`)** accent theme and custom modern icons |
+| **Release Signing** | Often distributed as unsigned or public test keys | **Signed in GitHub Actions** with dedicated private release key (v2 & v3) |
+| **Welcome Banner (MOTD)** | English default | **Modern Turkish MOTD** synchronized on app upgrade |
+
+---
+
+## Key Features
+
+- **Integrated X11 display server:** The complete Termux:X11 display server is built into the application package. No companion APKs or signature mismatch headaches.
+- **Dynamic status bar icon:** The persistent foreground notification icon dynamically reflects current activity: Neon Cyan `X_` while the X11 screen is active, and `>_` when in terminal sessions.
+- **Battery-friendly event-driven lifecycle:** The legacy 200 ms `serverWatchdog` polling thread has been completely removed. State changes hook into `onActivityResumed` and `onActivityPaused` with zero continuous CPU wakeups.
+- **Audio and microphone ready:** Includes the Android `RECORD_AUDIO` permission out of the box and bundles `termux-setup-microphone` to request runtime audio permissions instantly.
+- **Pre-bundled XKB configuration:** Keyboard layouts are packed directly in the app assets and auto-installed into `$PREFIX/share/`, eliminating `xkbcomp` missing errors.
+- **Signed single-asset releases:** Release workflows produce an authentic signed APK (`arm64-v8a`) verified with APK Signature Scheme v2 and v3.
+
+---
+
+## Quickstart: Graphical Desktop (X11)
+
+Modern Termux lets you launch full desktop environments (such as XFCE4) directly.
+
+### 1. Install a Desktop Environment
+
+Open Modern Termux and run:
+
+```bash
+pkg update
+pkg install xfce4 xfce4-terminal
+```
+
+### 2. Start the Integrated X11 Server
+
+Launch the display server in the background:
+
+```bash
+termux-x11 :0 &
+```
+
+### 3. Launch the Desktop Session
+
+Export the display variable and start XFCE:
+
+```bash
+export DISPLAY=:0
+startxfce4 &
+```
+
+### 4. Switch to the Graphical Screen
+
+- Swipe from the left edge of the screen to open the **Navigation Drawer**.
+- Tap the **X11 icon** (`X_`) to switch directly to your desktop workspace.
+
+---
+
+## Audio & Microphone Setup
+
+Modern Termux includes native Android microphone support (`RECORD_AUDIO`). You can configure full duplex audio (playback and recording) using PulseAudio and ALSA.
+
+### 1. Grant Microphone Permission
+
+Run the bundled microphone helper script:
+
+```bash
+termux-setup-microphone
+```
+
+A system dialog will prompt you to grant microphone access to Modern Termux. Tap **Allow** (While using the app).
+
+### 2. Install Audio Packages
+
+```bash
+pkg install pulseaudio alsa-utils
+```
+
+### 3. Start PulseAudio with OpenSL ES Support
+
+To enable audio playback and recording for both terminal CLI and graphical X11 apps, start PulseAudio with OpenSL ES sink and source modules:
+
+```bash
+pulseaudio --start \
+    --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" \
+    --load="module-sles-sink" \
+    --load="module-sles-source" \
+    --exit-idle-time=-1
+```
+
+> [!TIP]
+> You can add this command to your `~/.bashrc` or X11 startup script (`startxfce4`) to initialize sound automatically whenever you work.
+
+### 4. Test Playback and Recording
+
+- **Test Microphone Recording (ALSA):**
+  Record 5 seconds of audio to `test.wav`:
+  ```bash
+  arecord -D pulse -f cd -d 5 test.wav
+  ```
+- **Test Audio Playback (ALSA):**
+  Play back the recorded audio:
+  ```bash
+  aplay -D pulse test.wav
+  ```
+- **PulseAudio Native Tools:**
+  You can also record and play using `parec` and `paplay`:
+  ```bash
+  parec --format=s16le --rate=44100 --channels=2 > mic_sample.raw
+  paplay --format=s16le --rate=44100 --channels=2 mic_sample.raw
+  ```
+
+---
+
+## UI & Navigation Drawer Shortcuts
+
+The terminal navigation drawer includes dedicated controls for the graphical environment:
+
+- **Open Drawer:** Swipe from the left edge of the terminal or tap the left drawer indicator.
+- **X11 Button Tap:** Tapping the Neon Cyan `X_` button immediately brings the X11 desktop activity into the foreground.
+- **X11 Button Long-Press:** Long-pressing the `X_` button opens **X11 Preferences** (`LoriePreferences`), allowing you to configure:
+  - Display resolution, scaling mode, and DPI.
+  - Touch input modes (Trackpad mode, Simulated Touchscreen, or Direct Mouse).
+  - Software vs Hardware rendering options.
+  - Soft keyboard behaviors and extra key bindings.
+
+---
+
+## Built-in CLI Utilities
+
+Modern Termux installs helper commands directly into `$PREFIX/bin`:
+
+### `termux-x11`
+Starts the native Termux:X11 display server daemon using the embedded APK and libraries:
+```bash
+termux-x11 :0 [options]
+```
+
+### `termux-x11-preference`
+Inspect and change X11 settings directly from your terminal or shell scripts:
+```bash
+# List all configurable preference keys and current values:
+termux-x11-preference list
+
+# Change preferences (e.g. resolution scale, fullscreen mode):
+termux-x11-preference displayScale:100 fullscreen:true
+```
+
+### `termux-setup-microphone`
+Broadcasts the intent request to prompt the Android system for runtime audio recording permission (`android.permission.RECORD_AUDIO`).
+
+---
 
 ## Installation
 
-Modern Termux requires **Android 7.0 or later** and currently publishes an **`arm64-v8a`** build.
+Modern Termux requires **Android 7.0 or later** and currently targets **`arm64-v8a`** architecture.
 
-1. Open the [latest release](https://github.com/Furkan00487/modern-termux/releases/latest).
-2. Download `termux-app_<version>-apt-android-7-github-release_arm64-v8a.apk` and its `..._sha256sums` file.
-3. [Verify the download](#verifying-a-download), then install the APK.
+1. Navigate to the [latest release](https://github.com/Furkan00487/modern-termux/releases/latest).
+2. Download `termux-app_<version>-apt-android-7-github-release_arm64-v8a.apk` and its corresponding `..._sha256sums` file.
+3. [Verify the download integrity](#verifying-a-download), then install the APK on your device.
 
-### Compatibility with other Termux builds
+### Compatibility with Other Termux Builds
 
-Modern Termux is signed with its own key, so it is **not** compatible with APKs signed by other sources such as F-Droid, the upstream GitHub builds or Google Play. Android refuses to install an app over one signed with a different key (for example `INSTALL_FAILED_UPDATE_INCOMPATIBLE` or `signatures do not match previously installed version`). To switch, uninstall every existing Termux app and plugin first, then install Modern Termux. Consider [backing up Termux](https://wiki.termux.com/wiki/Backing_up_Termux) before you do.
+Modern Termux is signed with its own dedicated private release key. Android package management prevents installing this build over existing Termux installations signed by F-Droid, upstream GitHub releases, or Google Play (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`).
 
-Termux plugins such as Termux:API, Termux:Boot and Termux:Widget share the `com.termux` user ID with the main app and must be signed with the same key. Plugins from other sources will not work alongside Modern Termux.
+To switch to Modern Termux:
+1. [Back up your existing Termux data](https://wiki.termux.com/wiki/Backing_up_Termux) if necessary.
+2. Uninstall your current Termux app and any installed Termux plugins.
+3. Install Modern Termux APK.
+
+---
 
 ## Verifying a Download
 
-Check the SHA-256 checksum from the folder that contains both files:
+Check the SHA-256 checksum from the directory containing both files:
 
 ```bash
 sha256sum -c termux-app_<version>-apt-android-7-github-release_sha256sums
 ```
 
-Check the APK signature with `apksigner` (from the Android SDK build tools or the Termux `apksigner` package):
+Verify the APK signature with `apksigner` (from the Android SDK build tools or the Termux `apksigner` package):
 
 ```bash
 apksigner verify --verbose termux-app_<version>-apt-android-7-github-release_arm64-v8a.apk
 ```
 
-The output should report `Verified using v2 scheme (APK Signature Scheme v2): true` and the same for v3.
+The output will confirm validity under both **Scheme v2** and **Scheme v3**:
+```
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+```
+
+---
 
 ## Upgrading and Uninstalling
 
-Installing a newer release over an existing Modern Termux installation upgrades it in place and keeps your data. On the first launch after an upgrade (a higher `versionCode`), the app refreshes the bundled `termux-x11` helper scripts and the welcome banner.
+- **Upgrading:** Installing a newer release over an existing Modern Termux installation upgrades the app in place and preserves all user files and packages. When `versionCode` increases, Modern Termux automatically refreshes helper scripts (`termux-x11`, `termux-setup-microphone`) and updates the MOTD banner.
+- **Uninstalling:** Remove Modern Termux from **Android Settings** -> **Apps** -> **Modern Termux** -> **Uninstall**.
 
-To uninstall, remove Modern Termux and any Termux plugin apps from `Android Settings` -> `Apps`.
+---
 
 ## Building from Source
 
 ```bash
+# Clone the repository with its submodules
 git clone --recursive https://github.com/Furkan00487/modern-termux.git
 cd modern-termux
-./gradlew testDebugUnitTest      # run the unit tests
+
+# Run unit tests
+./gradlew testDebugUnitTest
+
+# Build release APK
 ./gradlew downloadBootstraps assembleRelease
 ```
 
-The repository includes native X11 code as git submodules, so clone with `--recursive`. Release signing is configured through the `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD` and `KEYSTORE_ALIAS` environment variables, which are provided by GitHub Secrets in CI. Without them `assembleRelease` produces an unsigned APK, which Android will not install until you sign it with your own key.
+Native X11 modules are linked as submodules, so clone with `--recursive`. Release signing in CI uses the `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, and `KEYSTORE_ALIAS` secrets. In local environments without these variables, `assembleRelease` produces an unsigned APK.
 
-Releases are produced by the [Release Build](.github/workflows/release_build.yml) workflow.
+---
 
 ## Debugging
 
-Modern Termux uses a localized Turkish UI by default. To capture detailed diagnostic logs for troubleshooting:
+Modern Termux includes a localized Turkish UI by default. To capture diagnostic logs for troubleshooting:
 
 1. **Open Settings:**
-   - Swipe from the left edge of the screen to open the navigation drawer and tap the gear icon ⚙️ (**Ayarlar**), or
-   - Long-press anywhere on the terminal screen and select **Ayarlar** (**Settings**).
-2. **Navigate to Log Level:**
-   - Tap **Modern Termux** (or **Termux**).
+   - Swipe from the left edge of the terminal and tap the gear icon ⚙️ (**Ayarlar**), or
+   - Long-press anywhere on the terminal window and choose **Ayarlar** (**Settings**).
+2. **Access Log Level:**
+   - Tap **Modern Termux**.
    - Tap **Hata Ayıklama** (**Debugging**).
-   - Under **Günlük Kaydı (Logging)**, select **Günlük Düzeyi** (**Log Level**).
-3. **Change Log Level:**
-   - Select **Ayrıntılı (Verbose)** (or **Hata Ayıklama (Debug)**).
-   - **Normal** is the default. Always revert back to **Normal** after capturing logs, as verbose logging increases execution overhead and writes detailed session data to `logcat`.
+   - Under **Günlük Kaydı (Logging)**, tap **Günlük Düzeyi** (**Log Level**).
+3. **Select Verbosity:**
+   - Select **Ayrıntılı (Verbose)** or **Hata Ayıklama (Debug)**.
+   - Always revert back to **Normal** after testing to avoid performance overhead.
 
-You can dump or filter `logcat` directly from Termux:
-
+View logs from within Termux:
 ```bash
 logcat -d | grep -i "com.termux"
 ```
 
-Or from a connected computer via ADB:
-
+Or from a connected PC via ADB:
 ```bash
 adb logcat -s "termux:*"
 ```
 
-When you report a problem in the [issue tracker](https://github.com/Furkan00487/modern-termux/issues), please include your Modern Termux version, Android version, device model, and the relevant `logcat` output.
+---
 
 ## Contributing
 
-- Keep changes focused and run `./gradlew testDebugUnitTest` before opening a pull request.
-- Use [Conventional Commits](https://www.conventionalcommits.org) for commit messages, for example `feat: add dynamic notification icon` or `fix: guard null service instance`.
-- Bump `versionCode` and `versionName` in `app/build.gradle`, and the library versions in `terminal-emulator`, `terminal-view` and `termux-shared`, with every release. `versionName` must follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) in the form `major.minor.patch`.
-- Shared constants and utilities belong in the `termux-shared` library rather than being hardcoded. Respect the licenses of any external code you add.
+- Keep pull requests focused and run `./gradlew testDebugUnitTest` prior to opening a PR.
+- Follow [Conventional Commits](https://www.conventionalcommits.org) (e.g. `feat: add dynamic notification icon`, `fix: handle null service instance`).
+- When releasing a new version, bump `versionCode` (+1 integer) and `versionName` (SemVer `major.minor.patch`) in `app/build.gradle` and submodule gradle files.
+- Place shared utilities in `termux-shared` to maintain modular separation.
+
+---
 
 ## Upstream Resources
 
-Modern Termux keeps the upstream package name, so the Termux documentation applies to most usage questions.
-
 - [Termux Wiki](https://wiki.termux.com/wiki/)
-- [Termux App Wiki](https://github.com/termux/termux-app/wiki)
-- [Package Management](https://wiki.termux.com/wiki/Package_Management)
+- [Termux Packages Repository](https://github.com/termux/termux-packages)
 - [Termux File System Layout](https://github.com/termux/termux-packages/wiki/Termux-file-system-layout)
-- [Differences From Linux](https://wiki.termux.com/wiki/Differences_from_Linux)
-- [Running Commands in Termux From Other Apps via `RUN_COMMAND` intent](https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent)
-- [Termux Packages](https://github.com/termux/termux-packages), the source of the bootstrap archives and installable packages
+- [Running Commands via RUN_COMMAND Intent](https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent)
 
-Note that the upstream wiki, community channels and issue trackers are for the upstream Termux project. Report Modern Termux problems in this repository's [issue tracker](https://github.com/Furkan00487/modern-termux/issues).
+---
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE).
-
-### Exceptions
-
-- Code from [Terminal Emulator for Android](https://github.com/jackpal/Android-Terminal-Emulator) is released under the [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license. See the [`terminal-view`](terminal-view) and [`terminal-emulator`](terminal-emulator) libraries.
-- See [`termux-shared/LICENSE.md`](termux-shared/LICENSE.md) for exceptions that apply to the `termux-shared` library.
+Modern Termux is licensed under the [GNU General Public License v3.0](LICENSE).
+- Upstream terminal emulation libraries from [Terminal Emulator for Android](https://github.com/jackpal/Android-Terminal-Emulator) are licensed under Apache 2.0. See `terminal-view` and `terminal-emulator`.
+- Additional notices can be found in `termux-shared/LICENSE.md`.
