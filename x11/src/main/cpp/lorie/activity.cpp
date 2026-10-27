@@ -24,8 +24,6 @@
 // `r` must be a LorieViewResources* — the connection fd is per-instance state, not a process global.
 #define sendEvent(r, ...) do { if ((r) && (r)->connFd != -1) { lorieEvent e = { __VA_ARGS__ }; write((r)->connFd, &e, sizeof(e)); } } while (0)
 
-bool lorieDebugEnabled = false;
-
 // Timestamp of the last real input reaching the X session, from any source. Read/written only
 // from the Android main thread via JNI.
 static volatile int64_t lastInputTimestampMs = 0;
@@ -163,7 +161,7 @@ LorieViewResources::LorieViewResources(JNIEnv *callerEnv, jobject view) {
     JavaVM* vm;
     destroyed = false;
     renderer.init(callerEnv, view);
-    renderer.connFdPtr = &connFd; // lets the renderer thread wake up a GPU copy waiter
+    renderer.connFdPtr = &connFd;
 
     callerEnv->GetJavaVM(&vm);
     vm->AttachCurrentThread(&env, nullptr);
@@ -335,7 +333,6 @@ void LorieViewResources::connect(jint fd) {
 
 static void startLogcat(JNIEnv *env, __unused jclass clazz, __unused jlong ptr, jint fd) {
     log(DEBUG, "Starting logcat with output to given fd");
-    lorieDebugEnabled = true;
 
     switch(fork()) {
         case -1:
