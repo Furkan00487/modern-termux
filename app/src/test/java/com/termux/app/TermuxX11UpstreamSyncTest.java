@@ -45,7 +45,7 @@ public class TermuxX11UpstreamSyncTest {
         assertFalse(summary.isEmpty());
 
         Prefs prefs = new Prefs();
-        prefs.attach(ctx, ctx.getSharedPreferences(LorieApp.X11_PREFS_NAME, Context.MODE_PRIVATE));
+        prefs.attach(ctx, ctx.getSharedPreferences("test_x11_prefs", Context.MODE_PRIVATE));
         assertFalse(prefs.invertScrolling.get());
         assertTrue(prefs.keys.containsKey("invertScrolling"));
         prefs.invertScrolling.put(true);
