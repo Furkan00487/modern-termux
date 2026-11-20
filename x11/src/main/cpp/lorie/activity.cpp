@@ -36,8 +36,8 @@ static int64_t nowMs() {
 
 static struct {
     jclass self;
-    jmethodID clientConnectedStateChanged, resetIme, setRendererViewport, setAppSleepInhibited, onX11ScreenSaverReset;
-    jfieldID lastServerHeartbeat;
+    jmethodID clientConnectedStateChanged, resetIme, setRendererViewport, setAppSleepInhibited, onX11ScreenSaverReset, onServerHeartbeat;
+    jfieldID lastServerHeartbeat, surfacePending;
 } MainActivity = {nullptr};
 
 static struct {
@@ -153,7 +153,9 @@ static jlong nativeInit(JNIEnv *env, jobject thiz) {
 
         MainActivity.self = FindClassOrDie(env,  "com/termux/x11/MainActivity");
         MainActivity.clientConnectedStateChanged = FindMethodOrDie(env, MainActivity.self, "clientConnectedStateChanged", "()V", JNI_FALSE);
+        MainActivity.onServerHeartbeat = FindMethodOrDie(env, MainActivity.self, "onServerHeartbeat", "()V", JNI_FALSE);
         MainActivity.lastServerHeartbeat = env->GetFieldID(MainActivity.self, "lastServerHeartbeat", "J");
+        MainActivity.surfacePending = env->GetFieldID(MainActivity.self, "surfacePending", "Z");
         jclass viewClass = env->GetObjectClass(thiz);
         MainActivity.resetIme = FindMethodOrDie(env, viewClass, "resetIme", "()V", JNI_FALSE);
         MainActivity.setRendererViewport = FindMethodOrDie(env, viewClass, "setRendererViewport", "(IIIIFFFF)V", JNI_FALSE);
@@ -296,8 +298,11 @@ int LorieViewResources::xcallback(int fd, int events) {
                     break;
                 }
                 case EVENT_HEARTBEAT: {
-                    if (activity)
+                    if (activity) {
                         env->SetLongField(activity, MainActivity.lastServerHeartbeat, nowMs());
+                        if (env->GetBooleanField(activity, MainActivity.surfacePending))
+                            env->CallVoidMethod(activity, MainActivity.onServerHeartbeat);
+                    }
                     break;
                 }
                 case EVENT_SYNC_REPLY: {

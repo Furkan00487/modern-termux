@@ -115,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
     private static final long SERVER_HEARTBEAT_TIMEOUT_MS = 3000;
     @Keep private long lastServerHeartbeat; // Kept for JNI activity.cpp compatibility
     @Keep volatile boolean surfacePending;
+    private final SurfaceHandoffState surfaceHandoffState = new SurfaceHandoffState();
     /** Aspect ratios outside of the range the device is configured with are rejected by the system. */
     private static final float MIN_PIP_ASPECT_RATIO = getSystemDimenFloat("config_pictureInPictureMinAspectRatio", 1.f / 2.39f);
     private static final float MAX_PIP_ASPECT_RATIO = getSystemDimenFloat("config_pictureInPictureMaxAspectRatio", 2.39f);
@@ -727,8 +728,9 @@ public class MainActivity extends AppCompatActivity {
     /** The X server draws into the surface itself. */
     void windowChanged(Surface surface) {
         // The call waits for the server to take the surface, which a stalled one never does.
-        surfacePending = serverStalled();
-        if (service == null || surfacePending)
+        boolean stalled = surfaceHandoffState.markPendingIfStalled(serverStalled());
+        surfacePending = surfaceHandoffState.isSurfacePending();
+        if (stalled || service == null)
             return;
 
         try {
@@ -739,7 +741,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void cursorWindowChanged(Surface surface) {
-        if (service == null || serverStalled())
+        boolean stalled = surfaceHandoffState.markPendingIfStalled(serverStalled());
+        surfacePending = surfaceHandoffState.isSurfacePending();
+        if (stalled || service == null)
             return;
 
         try {
@@ -863,6 +867,20 @@ public class MainActivity extends AppCompatActivity {
     private boolean serverStalled() {
         return getLorieView().connected() && SystemClock.uptimeMillis() - lastServerHeartbeat > SERVER_HEARTBEAT_TIMEOUT_MS;
     }
+
+    /** One-shot surface handoff flush triggered from JNI EVENT_HEARTBEAT when surfacePending is true. */
+    @Keep
+    void onServerHeartbeat() {
+        lastServerHeartbeat = SystemClock.uptimeMillis();
+        if (!surfaceHandoffState.consumePendingOnHeartbeat()) {
+            surfacePending = false;
+            return;
+        }
+        surfacePending = false;
+        handler.post(() -> {
+            if (!redirected && getLorieView().connected() && !serverStalled())
+                getLorieView().sendSurface();
+        });
     }
 
     @Override
@@ -1303,6 +1321,8 @@ public class MainActivity extends AppCompatActivity {
             lastServerHeartbeat = SystemClock.uptimeMillis();
             if (!connected) {
                 x11SleepInhibited = false;
+                surfaceHandoffState.clear();
+                surfacePending = false;
                 setCapturingEnabled(false);
             } else if (mExtraKeys != null) {
                 mExtraKeys.unsetSpecialKeys();

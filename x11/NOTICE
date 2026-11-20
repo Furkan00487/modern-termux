@@ -7,14 +7,17 @@ Upstream authors: Termux:X11 contributors
 ## Modification Notice (GPLv3 §5(a))
 This `x11/` module is adapted from `termux/termux-x11` for direct integration
 inside this repository, with modifications introduced between **2026-10-20**
-and **2026-11-15**, including:
+and **2026-11-20** (synced with upstream `termux/termux-x11` through `ed43f97`,
+`xserver 21.1.26`, and `libX11 1.8.14`), including:
 
 - In-app Gradle subproject integration (`x11/build.gradle`) and IPC/activity
   wiring inside the main app package.
 - Removal of the periodic 200 ms `serverWatchdog` polling thread in favor of
-  event-driven `onActivityResumed` / `onActivityPaused` lifecycle hooks.
+  event-driven `onActivityResumed` / `onActivityPaused` lifecycle hooks and
+  one-shot `EVENT_HEARTBEAT` deferred surface flush.
 - Dynamic foreground notification state synchronization (`X_` / `>_`).
 - Wake-lock / keep-screen-awake handling on X11 `ScreenSaverSuspend` / reset.
+- Turkish localization of preferences and UI strings (including invert scroll).
 
 ## Third-Party Components and Submodules
 The `x11/` module includes and builds the following third-party components
