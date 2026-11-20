@@ -51,7 +51,7 @@ public class UpstreamTerminalFeaturesTest extends TerminalTestCase {
 
     public void testTerminalBufferBlockSetClearsLineWrap() {
         withTerminalSized(4, 3);
-        enterString("abcd");
+        enterString("abcde");
         assertTrue(mTerminal.getScreen().getLineWrap(0));
         mTerminal.getScreen().blockSet(0, 0, 4, 1, ' ', TextStyle.NORMAL);
         assertFalse(mTerminal.getScreen().getLineWrap(0));
